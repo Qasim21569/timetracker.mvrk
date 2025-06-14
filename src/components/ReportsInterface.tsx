@@ -133,6 +133,9 @@ const ReportsInterface = () => {
   const showProjectTotals = showAllUsers;
   const showUserTotals = showAllProjects;
   const showOverallTotal = showAllUsers && showAllProjects;
+  
+  // Special case: Single User + All Projects = Simple table format
+  const isSimpleUserReport = !showAllUsers && showAllProjects;
 
   return (
     <div className="space-y-6">
@@ -237,9 +240,13 @@ const ReportsInterface = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Project</TableHead>
-                  {visibleUsers.map(user => (
-                    <TableHead key={user} className="text-center">{user}</TableHead>
-                  ))}
+                  {isSimpleUserReport ? (
+                    <TableHead className="text-center">{selectedUser}</TableHead>
+                  ) : (
+                    visibleUsers.map(user => (
+                      <TableHead key={user} className="text-center">{user}</TableHead>
+                    ))
+                  )}
                   {showProjectTotals && (
                     <TableHead className="text-center">Project Totals</TableHead>
                   )}
@@ -249,20 +256,30 @@ const ReportsInterface = () => {
                 {filteredData.map((row) => (
                   <TableRow key={row.project}>
                     <TableCell className="font-medium">{row.project}</TableCell>
-                    {visibleUsers.map(user => (
-                      <TableCell key={user} className="text-center">{row.users[user]}</TableCell>
-                    ))}
+                    {isSimpleUserReport ? (
+                      <TableCell className="text-center">{row.users[selectedUser]}</TableCell>
+                    ) : (
+                      visibleUsers.map(user => (
+                        <TableCell key={user} className="text-center">{row.users[user]}</TableCell>
+                      ))
+                    )}
                     {showProjectTotals && (
                       <TableCell className="text-center font-medium">{row.projectTotal}</TableCell>
                     )}
                   </TableRow>
                 ))}
-                {showUserTotals && (
+                {(showUserTotals || isSimpleUserReport) && (
                   <TableRow className="border-t-2">
-                    <TableCell className="font-bold">User Totals</TableCell>
-                    {visibleUsers.map(user => (
-                      <TableCell key={user} className="text-center font-bold">{userTotals[user]}</TableCell>
-                    ))}
+                    <TableCell className="font-bold">
+                      {isSimpleUserReport ? 'User Totals' : 'User Totals'}
+                    </TableCell>
+                    {isSimpleUserReport ? (
+                      <TableCell className="text-center font-bold">{userTotals[selectedUser]}</TableCell>
+                    ) : (
+                      visibleUsers.map(user => (
+                        <TableCell key={user} className="text-center font-bold">{userTotals[user]}</TableCell>
+                      ))
+                    )}
                     {showOverallTotal && (
                       <TableCell className="text-center font-bold text-primary bg-blue-600 text-white">
                         Overall Total<br/>{overallTotal}
