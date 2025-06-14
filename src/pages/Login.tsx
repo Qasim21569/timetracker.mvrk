@@ -73,7 +73,7 @@ const LoginPage = () => {
           </form>
           {/* Development credentials note */}
           <div className="mt-6 p-3 rounded bg-muted text-muted-foreground text-xs border">
-            <strong>Note:</strong> This app is in development.<br />
+            <strong>Note:</strong> These are the temporary credentials.<br />
             <span>Admin: <code>admin@example.com</code> / <code>password</code></span><br />
             <span>User: <code>user@example.com</code> / <code>password</code></span>
           </div>
