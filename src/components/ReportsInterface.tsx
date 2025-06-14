@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,10 +40,33 @@ const months = [
 ];
 
 const ReportsInterface = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedUser, setSelectedUser] = useState('All Users');
   const [selectedProject, setSelectedProject] = useState('All Projects');
   const [selectedMonth, setSelectedMonth] = useState('January 2025');
   const [showReport, setShowReport] = useState(false);
+
+  // Initialize filters from URL parameters
+  useEffect(() => {
+    const userParam = searchParams.get('user');
+    const projectParam = searchParams.get('project');
+    const monthParam = searchParams.get('month');
+
+    if (userParam && allUsers.includes(userParam)) {
+      setSelectedUser(userParam);
+    }
+    if (projectParam && allProjects.includes(projectParam)) {
+      setSelectedProject(projectParam);
+    }
+    if (monthParam && months.includes(monthParam)) {
+      setSelectedMonth(monthParam);
+    }
+
+    // If any parameters were set, automatically generate the report
+    if (userParam || projectParam || monthParam) {
+      setShowReport(true);
+    }
+  }, [searchParams]);
 
   const handleGenerateReport = () => {
     setShowReport(true);
