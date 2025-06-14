@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -52,55 +51,67 @@ const UserManagementTable = ({ onEditUser }: UserManagementTableProps) => {
 
   return (
     <Card>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Tier</TableHead>
-            <TableHead className="text-center">Hours Per Day</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sortedUsers.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell className="font-medium">{user.name}</TableCell>
-              <TableCell className="text-muted-foreground">{user.email}</TableCell>
-              <TableCell>
-                <Badge variant={user.active ? "default" : "secondary"}>
-                  {user.active ? 'Active' : 'Inactive'}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge variant={user.tier === 'Admin' ? "destructive" : "outline"}>
-                  {user.tier}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-center">{user.hoursPerDay}</TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => onEditUser(user)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleViewReports(user)}
-                  >
-                    <FileText className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
+      <div className="overflow-x-auto">
+        <Table className="min-w-[600px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs md:text-sm">Name</TableHead>
+              <TableHead className="text-xs md:text-sm">Email</TableHead>
+              <TableHead className="text-xs md:text-sm">Status</TableHead>
+              <TableHead className="text-xs md:text-sm">Tier</TableHead>
+              <TableHead className="text-center text-xs md:text-sm">Hours Per Day</TableHead>
+              <TableHead className="text-right text-xs md:text-sm">Actions</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {sortedUsers.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell className="font-medium text-xs md:text-sm">
+                  <div className="truncate max-w-[120px] md:max-w-none" title={user.name}>
+                    {user.name}
+                  </div>
+                </TableCell>
+                <TableCell className="text-muted-foreground text-xs md:text-sm">
+                  <div className="truncate max-w-[150px] md:max-w-none" title={user.email}>
+                    {user.email}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={user.active ? "default" : "secondary"} className="text-xs">
+                    {user.active ? 'Active' : 'Inactive'}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={user.tier === 'Admin' ? "destructive" : "outline"} className="text-xs">
+                    {user.tier}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-center text-xs md:text-sm">{user.hoursPerDay}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1 md:gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => onEditUser(user)}
+                      className="h-8 w-8 p-0 md:h-9 md:w-9"
+                    >
+                      <Edit className="h-3 w-3 md:h-4 md:w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleViewReports(user)}
+                      className="h-8 w-8 p-0 md:h-9 md:w-9"
+                    >
+                      <FileText className="h-3 w-3 md:h-4 md:w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </Card>
   );
 };

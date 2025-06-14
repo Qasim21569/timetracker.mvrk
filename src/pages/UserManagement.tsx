@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import AdminTabs from '@/components/layout/AdminTabs';
@@ -37,17 +36,17 @@ const UserManagementPage = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         <AdminTabs />
         
         {currentView === 'table' && (
           <>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
-                <h1 className="text-3xl font-bold">User Management</h1>
-                <p className="text-muted-foreground">Manage user accounts and permissions</p>
+                <h1 className="text-2xl md:text-3xl font-bold">User Management</h1>
+                <p className="text-sm md:text-base text-muted-foreground">Manage user accounts and permissions</p>
               </div>
-              <Button onClick={handleAddUser}>
+              <Button onClick={handleAddUser} className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Add User
               </Button>

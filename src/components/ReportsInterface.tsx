@@ -5,11 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { Filter, Download, Calendar as CalendarIcon, Printer } from 'lucide-react';
+import { Filter, Download, Printer } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 
 interface ReportData {
   project: string;
@@ -48,7 +45,15 @@ const ReportsInterface = () => {
   // Set default to current month instead of new Date()
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [showReport, setShowReport] = useState(false);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  // Generate month and year options
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i); // 5 years before and after current year
 
   // Initialize filters from URL parameters
   useEffect(() => {
@@ -83,13 +88,16 @@ const ReportsInterface = () => {
     setShowReport(true);
   };
 
-  const handleMonthSelect = (date: Date | undefined) => {
-    if (date) {
-      // Set to first day of the selected month for consistency
-      const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-      setSelectedMonth(firstDayOfMonth);
-      setIsCalendarOpen(false);
-    }
+  const handleMonthChange = (monthName: string) => {
+    const monthIndex = months.indexOf(monthName);
+    const newDate = new Date(selectedMonth.getFullYear(), monthIndex, 1);
+    setSelectedMonth(newDate);
+  };
+
+  const handleYearChange = (yearStr: string) => {
+    const year = parseInt(yearStr);
+    const newDate = new Date(year, selectedMonth.getMonth(), 1);
+    setSelectedMonth(newDate);
   };
 
   const calculateUserTotals = () => {
@@ -190,33 +198,34 @@ const ReportsInterface = () => {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Month</label>
-              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !selectedMonth && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedMonth ? format(selectedMonth, "MMMM yyyy") : "Select month"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedMonth}
-                    onSelect={handleMonthSelect}
-                    initialFocus
-                    className="pointer-events-auto"
-                    defaultMonth={selectedMonth}
-                    captionLayout="dropdown-buttons"
-                    fromYear={2020}
-                    toYear={2030}
-                  />
-                </PopoverContent>
-              </Popover>
+              <div className="grid grid-cols-2 gap-2">
+                <Select 
+                  value={months[selectedMonth.getMonth()]} 
+                  onValueChange={handleMonthChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {months.map(month => (
+                      <SelectItem key={month} value={month}>{month}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select 
+                  value={selectedMonth.getFullYear().toString()} 
+                  onValueChange={handleYearChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {years.map(year => (
+                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 

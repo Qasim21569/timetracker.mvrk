@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -89,28 +88,27 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header with view selector and month navigation */}
-      <div className="flex flex-col space-y-4">
-        <div className="flex justify-between items-center">
+      <div className="flex flex-col space-y-3 md:space-y-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div className="flex space-x-2">
-            <Button variant="default" className="bg-green-500 hover:bg-green-600">
-              Track Time
-            </Button>
+            
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-center sm:justify-end space-x-2">
             <Button
               variant="outline"
-              size="icon"
+              size="sm"
               onClick={() => navigateMonth('prev')}
+              className="md:size-default"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="min-w-[200px]">
+                <Button variant="outline" className="min-w-[180px] md:min-w-[200px] text-xs md:text-sm">
                   <Calendar className="mr-2 h-4 w-4" />
                   {format(selectedMonth, 'MMMM yyyy')}
                 </Button>
@@ -127,8 +125,9 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
             
             <Button
               variant="outline"
-              size="icon"
+              size="sm"
               onClick={() => navigateMonth('next')}
+              className="md:size-default"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -136,17 +135,19 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
         </div>
 
         {/* View tabs */}
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={() => onViewChange('daily')}>
-            Daily
-          </Button>
-          <Button variant="outline" onClick={() => onViewChange('weekly')}>
-            Weekly
-          </Button>
-          <Button variant="default" className="bg-green-500 hover:bg-green-600">
-            Monthly
-          </Button>
-          <Badge variant="secondary" className="bg-purple-100 text-purple-800 ml-auto">
+        <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 sm:items-center">
+          <div className="flex space-x-2">
+            <Button variant="outline" onClick={() => onViewChange('daily')} className="flex-1 sm:flex-none">
+              Daily
+            </Button>
+            <Button variant="outline" onClick={() => onViewChange('weekly')} className="flex-1 sm:flex-none">
+              Weekly
+            </Button>
+            <Button variant="default" className="bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none">
+              Monthly
+            </Button>
+          </div>
+          <Badge variant="secondary" className="bg-purple-100 text-purple-800 sm:ml-auto text-center">
             Total Hours: {monthlyTotal}
           </Badge>
         </div>
@@ -157,8 +158,9 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
         {/* Calendar Header - Days of week */}
         <div className="grid grid-cols-7 bg-blue-600 text-white">
           {weekDays.map(day => (
-            <div key={day} className="p-4 text-center font-semibold border-r border-blue-500 last:border-r-0">
-              {day}
+            <div key={day} className="p-2 md:p-4 text-center font-semibold border-r border-blue-500 last:border-r-0 text-xs md:text-sm">
+              <span className="hidden sm:inline">{day}</span>
+              <span className="sm:hidden">{day.slice(0, 3)}</span>
             </div>
           ))}
         </div>
@@ -174,7 +176,7 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
               <div
                 key={index}
                 className={`
-                  min-h-[100px] p-2 border-r border-b border-gray-200 last:border-r-0 cursor-pointer
+                  min-h-[80px] md:min-h-[100px] p-1 md:p-2 border-r border-b border-gray-200 last:border-r-0 cursor-pointer
                   ${isCurrentMonth ? 'bg-white hover:bg-gray-50' : 'bg-gray-100 text-gray-400'}
                   ${isToday ? 'bg-blue-50 border-blue-300' : ''}
                   ${hasHours ? 'bg-green-50' : ''}
@@ -182,12 +184,12 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
                 onClick={() => handleDayClick(dayData.date)}
               >
                 <div className="flex flex-col h-full">
-                  <div className={`text-sm font-medium mb-1 ${isToday ? 'text-blue-600' : ''}`}>
+                  <div className={`text-xs md:text-sm font-medium mb-1 ${isToday ? 'text-blue-600' : ''}`}>
                     {format(dayData.date, 'd')}
                   </div>
                   {isCurrentMonth && hasHours && (
                     <div className="mt-auto">
-                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 px-1 py-0.5">
                         {dayData.totalHours}h
                       </Badge>
                     </div>
@@ -201,8 +203,8 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
 
       {/* Day Detail Modal */}
       <Dialog open={isDayModalOpen} onOpenChange={(open) => !open && closeDayModal()}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-auto bg-white border-4 border-blue-200 shadow-2xl">
-          <div className="absolute right-4 top-4 z-50">
+        <DialogContent className="max-w-[95vw] md:max-w-6xl max-h-[90vh] overflow-y-auto bg-white border-4 border-blue-200 shadow-2xl">
+          <div className="absolute right-2 md:right-4 top-2 md:top-4 z-50">
             <Button
               variant="outline"
               size="sm"
@@ -210,17 +212,20 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
               className="bg-white hover:bg-gray-100"
             >
               <X className="h-4 w-4 mr-1" />
-              Close
+              <span className="hidden sm:inline">Close</span>
             </Button>
           </div>
           
           {selectedDayForModal && (
-            <div className="pt-8">
+            <div className="pt-6 md:pt-8">
               <div className="mb-4 text-center">
-                <h2 className="text-xl font-semibold text-gray-800">
-                  Daily Time Tracking - {format(selectedDayForModal, 'EEEE, MMMM do, yyyy')}
+                <h2 className="text-lg md:text-xl font-semibold text-gray-800">
+                  Daily Time Tracking
                 </h2>
-                <div className="text-sm text-gray-500 mt-1">
+                <div className="text-sm md:text-base text-gray-600 mt-1">
+                  {format(selectedDayForModal, 'EEEE, MMMM do, yyyy')}
+                </div>
+                <div className="text-xs md:text-sm text-gray-500 mt-1">
                   Click outside or use the Close button to return to calendar
                 </div>
               </div>

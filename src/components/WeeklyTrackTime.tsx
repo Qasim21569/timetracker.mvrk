@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -213,30 +212,30 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
   const getDayDate = (date: Date) => format(date, 'MMM. do');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header with view selector and week navigation */}
-      <div className="flex flex-col space-y-4">
-        <div className="flex justify-between items-center">
+      <div className="flex flex-col space-y-3 md:space-y-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div className="flex space-x-2">
-            <Button variant="default" className="bg-green-500 hover:bg-green-600">
-              Track Time
-            </Button>
+            
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-center sm:justify-end space-x-2">
             <Button
               variant="outline"
-              size="icon"
+              size="sm"
               onClick={() => navigateWeek('prev')}
+              className="md:size-default"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="min-w-[250px]">
+                <Button variant="outline" className="min-w-[200px] md:min-w-[250px] text-xs md:text-sm">
                   <Calendar className="mr-2 h-4 w-4" />
-                  Week of {format(weekStart, 'MMM. do, yyyy')}
+                  <span className="hidden sm:inline">Week of {format(weekStart, 'MMM. do, yyyy')}</span>
+                  <span className="sm:hidden">{format(weekStart, 'MMM. do')}</span>
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
@@ -252,8 +251,9 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
             
             <Button
               variant="outline"
-              size="icon"
+              size="sm"
               onClick={() => navigateWeek('next')}
+              className="md:size-default"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -261,136 +261,135 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
         </div>
 
         {/* View tabs */}
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={() => onViewChange('daily')}>
-            Daily
-          </Button>
-          <Button variant="default" className="bg-green-500 hover:bg-green-600">
-            Weekly
-          </Button>
-          <Button variant="outline" onClick={() => onViewChange('monthly')}>
-            Monthly
-          </Button>
-          <Badge variant="secondary" className="bg-purple-100 text-purple-800 ml-auto">
+        <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 sm:items-center">
+          <div className="flex space-x-2">
+            <Button variant="outline" onClick={() => onViewChange('daily')} className="flex-1 sm:flex-none">
+              Daily
+            </Button>
+            <Button variant="default" className="bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none">
+              Weekly
+            </Button>
+            <Button variant="outline" onClick={() => onViewChange('monthly')} className="flex-1 sm:flex-none">
+              Monthly
+            </Button>
+          </div>
+          <Badge variant="secondary" className="bg-purple-100 text-purple-800 sm:ml-auto text-center">
             Total Hours For Week: {totalWeeklyHours}
           </Badge>
         </div>
       </div>
 
       {/* Weekly time tracking table */}
-      <div className="overflow-auto max-h-[600px] border rounded-lg">
-        <table className="w-full">
-          <thead className="sticky top-0 bg-blue-600 text-white z-10">
-            <tr>
-              <th className="text-left p-4 font-semibold border-r border-blue-500">Project</th>
-              {weekDays.map((day, index) => (
-                <th key={index} className="text-center p-2 font-semibold border-r border-blue-500 min-w-[120px]">
-                  <div className="flex flex-col">
-                    <span>{getDayName(day)}. - {getDayDate(day)}</span>
-                    <span className="text-sm font-normal">Total: {dailyTotals[index]}</span>
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {projects.map((project, projectIndex) => (
-              <tr key={project.id} className={projectIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                <td className="p-4 font-medium border-r border-gray-300 bg-gray-100 sticky left-0 z-5">
-                  {project.name}
-                </td>
-                {weekDays.map((_, dayIndex) => (
-                  <td 
-                    key={dayIndex} 
-                    className={`p-2 text-center border-r border-gray-300 cursor-pointer hover:bg-blue-50 ${
-                      project.weeklyHours[dayIndex] > 0 && project.weeklyNotes[dayIndex] 
-                        ? 'bg-green-100' 
-                        : project.weeklyHours[dayIndex] > 0 
-                        ? 'bg-yellow-100' 
-                        : ''
-                    }`}
-                    onClick={() => handleCellClick(project.id, dayIndex)}
-                  >
-                    <Input
-                      type="number"
-                      value={project.weeklyHours[dayIndex] || 0}
-                      onChange={(e) => updateProjectHours(project.id, dayIndex, Number(e.target.value))}
-                      className="w-full text-center border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300"
-                      min="0"
-                      step="0.5"
-                      onClick={(e) => e.stopPropagation()}
-                      data-project={project.id}
-                      data-day={dayIndex}
-                    />
-                    {project.weeklyHours[dayIndex] > 0 && (
-                      <div className="text-xs mt-1">
-                        {project.weeklyNotes[dayIndex] ? (
-                          <span className="text-green-600">📝 Has notes</span>
-                        ) : (
-                          <span className="text-red-600">⚠️ Notes required</span>
-                        )}
-                      </div>
-                    )}
-                  </td>
+      <div className="overflow-x-auto border rounded-lg">
+        <div className="min-w-[800px]">
+          <table className="w-full">
+            <thead className="sticky top-0 bg-blue-600 text-white z-10">
+              <tr>
+                <th className="text-left p-2 md:p-4 font-semibold border-r border-blue-500 text-xs md:text-sm">Project</th>
+                {weekDays.map((day, index) => (
+                  <th key={index} className="text-center p-1 md:p-2 font-semibold border-r border-blue-500 min-w-[100px] md:min-w-[120px]">
+                    <div className="flex flex-col">
+                      <span className="text-xs md:text-sm">{getDayName(day)}. - {getDayDate(day)}</span>
+                      <span className="text-xs font-normal">Total: {dailyTotals[index]}</span>
+                    </div>
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {projects.map((project, projectIndex) => (
+                <tr key={project.id} className={projectIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                  <td className="p-2 md:p-4 font-medium border-r border-gray-300 bg-gray-100 sticky left-0 z-5 text-xs md:text-sm">
+                    <div className="truncate max-w-[120px] md:max-w-none" title={project.name}>
+                      {project.name}
+                    </div>
+                  </td>
+                  {weekDays.map((_, dayIndex) => (
+                    <td 
+                      key={dayIndex} 
+                      className={`p-1 md:p-2 text-center border-r border-gray-300 cursor-pointer hover:bg-blue-50 ${
+                        project.weeklyHours[dayIndex] > 0 && project.weeklyNotes[dayIndex] 
+                          ? 'bg-green-100' 
+                          : project.weeklyHours[dayIndex] > 0 
+                          ? 'bg-yellow-100' 
+                          : ''
+                      }`}
+                      onClick={() => handleCellClick(project.id, dayIndex)}
+                    >
+                      <Input
+                        type="number"
+                        value={project.weeklyHours[dayIndex] || 0}
+                        onChange={(e) => updateProjectHours(project.id, dayIndex, Number(e.target.value))}
+                        className="w-full text-center border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 text-xs md:text-sm min-w-0"
+                        min="0"
+                        step="0.5"
+                        onClick={(e) => e.stopPropagation()}
+                        data-project={project.id}
+                        data-day={dayIndex}
+                      />
+                      {project.weeklyHours[dayIndex] > 0 && (
+                        <div className="text-xs mt-1">
+                          {project.weeklyNotes[dayIndex] ? (
+                            <span className="text-green-600">📝</span>
+                          ) : (
+                            <span className="text-red-600">⚠️</span>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Notes Dialog */}
-      <Dialog 
-        open={notesDialog.isOpen} 
-        onOpenChange={(open) => {
-          if (!open && !notesDialog.isForced) {
-            closeNotesDialog();
-          }
-        }}
-      >
-        <DialogContent className="max-w-md">
+      <Dialog open={notesDialog.isOpen} onOpenChange={closeNotesDialog}>
+        <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              {notesDialog.isForced ? 'Notes Required' : 'Edit Notes'} - {projects.find(p => p.id === notesDialog.projectId)?.name}
-              <div className="text-sm font-normal text-gray-600">
-                {weekDays[notesDialog.dayIndex] ? format(weekDays[notesDialog.dayIndex], 'EEEE, MMM do') : ''}
-              </div>
-            </DialogTitle>
+            <DialogTitle className="text-base md:text-lg">Edit Notes</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            {notesDialog.isForced && (
-              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800">
-                  When editing the hours of any given block you need to add notes and then save won't commit if it is over 0. 
-                  This text entry won't close if the number of hour is over 0 and there is no text. 
-                  The cell being edited should highlight to indicate it is being edited.
-                </p>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <div className="text-sm text-gray-600">
+                Project: <span className="font-medium">{projects.find(p => p.id === notesDialog.projectId)?.name}</span>
               </div>
-            )}
-            <Textarea
-              value={notesDialog.currentNote}
-              onChange={(e) => setNotesDialog({ ...notesDialog, currentNote: e.target.value })}
-              placeholder={notesDialog.isForced ? "Notes are required when hours > 0" : "Enter your notes..."}
-              className="min-h-[100px] resize-y"
-              maxLength={1000}
-            />
-            <div className="text-xs text-gray-500">
-              {notesDialog.currentNote.length}/1000 characters
+              <div className="text-sm text-gray-600">
+                Day: <span className="font-medium">{weekDays[notesDialog.dayIndex] ? format(weekDays[notesDialog.dayIndex], 'EEEE, MMM do') : ''}</span>
+              </div>
             </div>
-            <div className="flex justify-end space-x-2">
-              {!notesDialog.isForced && (
-                <Button variant="outline" onClick={closeNotesDialog}>
-                  Cancel
-                </Button>
+            <div className="space-y-2">
+              <Textarea
+                value={notesDialog.currentNote}
+                onChange={(e) => setNotesDialog({ ...notesDialog, currentNote: e.target.value })}
+                placeholder={notesDialog.isForced ? "Notes are required when hours > 0" : "Enter your notes here..."}
+                className="min-h-[120px] md:min-h-[150px] text-sm"
+                rows={6}
+              />
+              {notesDialog.isForced && (
+                <div className="text-xs text-red-600">
+                  ⚠️ Notes are required when you add hours to a project
+                </div>
               )}
-              <Button 
-                onClick={saveNotes} 
-                className="bg-green-500 hover:bg-green-600"
-                disabled={notesDialog.isForced && !notesDialog.currentNote.trim()}
-              >
-                Save Notes
-              </Button>
             </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:justify-end sm:space-x-2">
+            <Button 
+              variant="outline" 
+              onClick={closeNotesDialog}
+              className="order-2 sm:order-1"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={saveNotes} 
+              className="bg-blue-600 hover:bg-blue-700 order-1 sm:order-2"
+              disabled={notesDialog.isForced && !notesDialog.currentNote.trim()}
+            >
+              Save Notes
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

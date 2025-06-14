@@ -55,60 +55,78 @@ const ProjectManagementTable = ({ onEditProject }: ProjectManagementTableProps) 
 
   return (
     <Card>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Project Name</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Assigned Users</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs md:text-sm min-w-[120px]">Project Name</TableHead>
+              <TableHead className="text-xs md:text-sm min-w-[80px]">Status</TableHead>
+              <TableHead className="text-xs md:text-sm min-w-[150px]">Assigned Users</TableHead>
+              <TableHead className="text-right text-xs md:text-sm min-w-[120px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
         <TableBody>
           {sortedProjects.map((project) => {
             const sortedUsers = sortUsersWithInactiveAtEnd(project.assignedUsers);
             
             return (
               <TableRow key={project.id}>
-                <TableCell className="font-medium">{project.name}</TableCell>
+                <TableCell className="font-medium text-xs md:text-sm">
+                  <div className="max-w-[120px] md:max-w-none truncate" title={project.name}>
+                    {project.name}
+                  </div>
+                </TableCell>
                 <TableCell>
-                  <Badge variant={project.active ? "default" : "secondary"}>
+                  <Badge variant={project.active ? "default" : "secondary"} className="text-xs">
                     {project.active ? 'Active' : 'Inactive'}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">
+                  <div className="flex items-center gap-1 md:gap-2">
+                    <Users className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground flex-shrink-0" />
+                    <div className="text-xs md:text-sm max-w-[120px] md:max-w-none">
                       {sortedUsers.map((user, index) => (
                         <span 
                           key={index} 
-                          className={inactiveUsers.includes(user) ? 'italic text-muted-foreground' : ''}
+                          className={`${inactiveUsers.includes(user) ? 'italic text-muted-foreground' : ''} ${index > 0 ? 'hidden md:inline' : ''}`}
+                          title={sortedUsers.join(', ')}
                         >
-                          {user}{index < sortedUsers.length - 1 ? ', ' : ''}
+                          {index === 0 ? user : `, ${user}`}
                         </span>
                       ))}
-                    </span>
+                      {sortedUsers.length > 1 && (
+                        <span className="md:hidden text-muted-foreground"> +{sortedUsers.length - 1}</span>
+                      )}
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
+                  <div className="flex justify-end gap-1 md:gap-2">
                     <Button 
                       variant="ghost" 
                       size="sm"
                       onClick={() => onEditProject(project)}
+                      className="h-8 w-8 md:h-9 md:w-9 p-0"
+                      title="Edit"
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-3 w-3 md:h-4 md:w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm">
-                      <FileText className="h-4 w-4" />
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="h-8 w-8 md:h-9 md:w-9 p-0"
+                      title="Details"
+                    >
+                      <FileText className="h-3 w-3 md:h-4 md:w-4" />
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="sm"
                       onClick={() => handleViewReports(project)}
+                      className="h-8 w-8 md:h-9 md:w-9 p-0"
+                      title="Reports"
                     >
-                      <BarChart3 className="h-4 w-4" />
+                      <BarChart3 className="h-3 w-3 md:h-4 md:w-4" />
                     </Button>
                   </div>
                 </TableCell>
@@ -116,7 +134,8 @@ const ProjectManagementTable = ({ onEditProject }: ProjectManagementTableProps) 
             );
           })}
         </TableBody>
-      </Table>
+        </Table>
+      </div>
     </Card>
   );
 };
