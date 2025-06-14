@@ -45,6 +45,7 @@ const ReportsInterface = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedUser, setSelectedUser] = useState('All Users');
   const [selectedProject, setSelectedProject] = useState('All Projects');
+  // Set default to current month instead of new Date()
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [showReport, setShowReport] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -84,7 +85,9 @@ const ReportsInterface = () => {
 
   const handleMonthSelect = (date: Date | undefined) => {
     if (date) {
-      setSelectedMonth(date);
+      // Set to first day of the selected month for consistency
+      const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+      setSelectedMonth(firstDayOfMonth);
       setIsCalendarOpen(false);
     }
   };
@@ -207,6 +210,10 @@ const ReportsInterface = () => {
                     onSelect={handleMonthSelect}
                     initialFocus
                     className="pointer-events-auto"
+                    defaultMonth={selectedMonth}
+                    captionLayout="dropdown-buttons"
+                    fromYear={2020}
+                    toYear={2030}
                   />
                 </PopoverContent>
               </Popover>
