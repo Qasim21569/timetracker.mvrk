@@ -40,35 +40,29 @@ const UserManagementPage = () => {
       <div className="space-y-6">
         <AdminTabs />
         
-        <div className="bg-card rounded-xl border border-border shadow-sm">
-          {currentView === 'table' && (
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h1 className="text-3xl font-bold text-foreground">User Management</h1>
-                  <p className="text-muted-foreground mt-1">Manage user accounts and permissions</p>
-                </div>
-                <Button onClick={handleAddUser} className="bg-primary hover:bg-primary/90 shadow-sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add User
-                </Button>
+        {currentView === 'table' && (
+          <>
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-bold">User Management</h1>
+                <p className="text-muted-foreground">Manage user accounts and permissions</p>
               </div>
-              <UserManagementTable onEditUser={handleEditUser} />
+              <Button onClick={handleAddUser}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add User
+              </Button>
             </div>
-          )}
+            <UserManagementTable onEditUser={handleEditUser} />
+          </>
+        )}
 
-          {currentView === 'add' && (
-            <div className="p-6">
-              <AddUserForm onClose={handleCloseForm} />
-            </div>
-          )}
+        {currentView === 'add' && (
+          <AddUserForm onClose={handleCloseForm} />
+        )}
 
-          {currentView === 'edit' && selectedUser && (
-            <div className="p-6">
-              <EditUserForm user={selectedUser} onClose={handleCloseForm} />
-            </div>
-          )}
-        </div>
+        {currentView === 'edit' && selectedUser && (
+          <EditUserForm user={selectedUser} onClose={handleCloseForm} />
+        )}
       </div>
     </MainLayout>
   );

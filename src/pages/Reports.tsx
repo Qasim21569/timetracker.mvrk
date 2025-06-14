@@ -9,15 +9,7 @@ const ReportsPage = () => {
     <MainLayout>
       <div className="space-y-6">
         <AdminTabs />
-        <div className="bg-card rounded-xl border border-border shadow-sm">
-          <div className="p-6">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-foreground">Reports</h1>
-              <p className="text-muted-foreground mt-1">View comprehensive time tracking reports</p>
-            </div>
-            <ReportsInterface />
-          </div>
-        </div>
+        <ReportsInterface />
       </div>
     </MainLayout>
   );
