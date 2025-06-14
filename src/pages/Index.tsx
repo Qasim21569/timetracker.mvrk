@@ -1,106 +1,106 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
-import AdminTabs from '@/components/layout/AdminTabs';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Clock, Briefcase, Calendar, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-
-const StatCard = ({ title, value, icon: IconComponent, description }: { 
-  title: string, 
-  value: string, 
-  icon: React.ElementType, 
-  description: string 
-}) => (
-  <Card>
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      <IconComponent className="h-4 w-4 text-muted-foreground" />
-    </CardHeader>
-    <CardContent>
-      <div className="text-2xl font-bold">{value}</div>
-      <p className="text-xs text-muted-foreground">{description}</p>
-    </CardContent>
-  </Card>
-);
+import { Badge } from '@/components/ui/badge';
+import { Clock, Target, Calendar, TrendingUp } from 'lucide-react';
 
 const TrackTimePage = () => {
-  const activeProjects = "3";
-  const todaysHours = "5.5h";
-  const remainingToday = "2.5h";
+  const { userRole } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect admin users to User Management as default
+    if (userRole === 'admin') {
+      navigate('/users', { replace: true });
+    }
+  }, [userRole, navigate]);
+
+  // Only render for non-admin users
+  if (userRole === 'admin') {
+    return null;
+  }
 
   return (
     <MainLayout>
       <div className="space-y-6">
-        <AdminTabs />
-        
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Track Time</h1>
-            <p className="text-muted-foreground">Manage your daily time entries and track project hours</p>
-          </div>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Time Entry
-          </Button>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Track Time</h1>
+          <p className="text-muted-foreground">Monitor your work hours and productivity</p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <StatCard 
-            title="Active Projects" 
-            value={activeProjects} 
-            icon={Briefcase} 
-            description="Projects you are currently assigned to" 
-          />
-          <StatCard 
-            title="Today's Hours" 
-            value={todaysHours} 
-            icon={Clock} 
-            description="Total hours logged today" 
-          />
-          <StatCard 
-            title="Remaining Today" 
-            value={remainingToday} 
-            icon={Calendar} 
-            description="Estimated hours left for today" 
-          />
+        {/* Quick Stats */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Today's Hours</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">7.5</div>
+              <p className="text-xs text-muted-foreground">+0.5 from yesterday</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">This Week</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">32.5</div>
+              <p className="text-xs text-muted-foreground">4 days worked</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Current Project</CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-lg font-semibold">Website Redesign</div>
+              <p className="text-xs text-muted-foreground">Frontend Development</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Efficiency</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">94%</div>
+              <p className="text-xs text-muted-foreground">+2% from last week</p>
+            </CardContent>
+          </Card>
         </div>
-        
+
+        {/* Current Status */}
         <Card>
           <CardHeader>
-            <CardTitle>Time Entries</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              Current Status
+              <Badge variant="secondary" className="bg-green-100 text-green-800">
+                Active
+              </Badge>
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="daily" className="w-full">
-              <TabsList>
-                <TabsTrigger value="daily">Daily</TabsTrigger>
-                <TabsTrigger value="weekly">Weekly</TabsTrigger>
-                <TabsTrigger value="monthly">Monthly</TabsTrigger>
-              </TabsList>
-              <TabsContent value="daily" className="space-y-4">
-                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-                  <Clock className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No time entries yet</h3>
-                  <p className="text-muted-foreground mb-4">Start tracking your time by adding your first entry</p>
-                  <Button>Add Time Entry</Button>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Working on: Frontend Development</p>
+                  <p className="text-sm text-muted-foreground">Started at 9:00 AM</p>
                 </div>
-              </TabsContent>
-              <TabsContent value="weekly" className="space-y-4">
-                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-                  <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Weekly view</h3>
-                  <p className="text-muted-foreground">Weekly time tracking coming soon</p>
+                <div className="text-right">
+                  <p className="text-2xl font-bold">2:35:12</p>
+                  <p className="text-sm text-muted-foreground">Current session</p>
                 </div>
-              </TabsContent>
-              <TabsContent value="monthly" className="space-y-4">
-                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-                  <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Monthly view</h3>
-                  <p className="text-muted-foreground">Monthly time tracking coming soon</p>
-                </div>
-              </TabsContent>
-            </Tabs>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
