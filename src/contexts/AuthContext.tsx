@@ -1,7 +1,14 @@
 
 import React, { createContext, useState, useContext, ReactNode } from 'react';
-import { User, dummyUsers, UserRole } from '@/data/dummyData';
+import { User, dummyUsers } from '@/data/dummyData'; // Removed UserRole from here as it's defined below
 import { useNavigate } from 'react-router-dom';
+
+// Define UserRole here if it's specific to AuthContext or ensure it's imported if defined elsewhere
+// For this case, it seems UserRole is also in dummyData.ts. Let's ensure consistency.
+// If UserRole from dummyData is the source of truth, import it.
+// If AuthContext needs its own, define and export it.
+// Assuming UserRole from dummyData.ts is the one we want:
+export type { UserRole } from '@/data/dummyData'; // Re-exporting from dummyData
 
 interface AuthContextType {
   currentUser: User | null;
@@ -37,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const isAuthenticated = !!currentUser;
-  const userRole = currentUser?.role || null;
+  const userRole = currentUser?.role || null; // UserRole type will be inferred from currentUser.role
 
   return (
     <AuthContext.Provider value={{ currentUser, login, logout, isAuthenticated, userRole }}>
@@ -53,3 +60,4 @@ export const useAuth = () => {
   }
   return context;
 };
+
