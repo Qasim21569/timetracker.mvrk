@@ -22,16 +22,22 @@ interface NotesDialogState {
   projectId: string;
   dayIndex: number;
   currentNote: string;
+  isForced: boolean; // Flag to indicate if this is a forced notes entry
 }
 
-const WeeklyTrackTime = () => {
+interface WeeklyTrackTimeProps {
+  onViewChange: (view: 'daily' | 'weekly' | 'monthly') => void;
+}
+
+const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
   const [selectedWeek, setSelectedWeek] = useState<Date>(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [notesDialog, setNotesDialog] = useState<NotesDialogState>({
     isOpen: false,
     projectId: '',
     dayIndex: 0,
-    currentNote: ''
+    currentNote: '',
+    isForced: false
   });
   
   const [projects, setProjects] = useState<ProjectEntry[]>([
@@ -100,22 +106,30 @@ const WeeklyTrackTime = () => {
   };
 
   const updateProjectHours = (projectId: string, dayIndex: number, hours: number) => {
+    const project = projects.find(p => p.id === projectId);
+    const newHours = Math.max(0, hours);
+    
+    // If hours > 0 and no notes exist, force notes dialog
+    if (newHours > 0 && project && !project.weeklyNotes[dayIndex]) {
+      setNotesDialog({
+        isOpen: true,
+        projectId,
+        dayIndex,
+        currentNote: '',
+        isForced: true
+      });
+      // Don't update hours yet - wait for notes
+      return;
+    }
+    
     const updatedProjects = projects.map(project => {
       if (project.id === projectId) {
-        const updatedHours = { ...project.weeklyHours, [dayIndex]: Math.max(0, hours) };
+        const updatedHours = { ...project.weeklyHours, [dayIndex]: newHours };
         return { ...project, weeklyHours: updatedHours };
       }
       return project;
     });
     autoSave(updatedProjects);
-
-    // If hours > 0 and no notes exist, open notes dialog
-    if (hours > 0) {
-      const project = projects.find(p => p.id === projectId);
-      if (project && !project.weeklyNotes[dayIndex]) {
-        openNotesDialog(projectId, dayIndex, '');
-      }
-    }
   };
 
   const updateProjectNotes = (projectId: string, dayIndex: number, notes: string) => {
@@ -135,17 +149,20 @@ const WeeklyTrackTime = () => {
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
-      setSelectedWeek(date);
+      // Always start from Monday of the selected week
+      const mondayOfWeek = startOfWeek(date, { weekStartsOn: 1 });
+      setSelectedWeek(mondayOfWeek);
       setIsCalendarOpen(false);
     }
   };
 
-  const openNotesDialog = (projectId: string, dayIndex: number, currentNote: string) => {
+  const openNotesDialog = (projectId: string, dayIndex: number, currentNote: string, isForced: boolean = false) => {
     setNotesDialog({
       isOpen: true,
       projectId,
       dayIndex,
-      currentNote
+      currentNote,
+      isForced
     });
   };
 
@@ -154,12 +171,34 @@ const WeeklyTrackTime = () => {
       isOpen: false,
       projectId: '',
       dayIndex: 0,
-      currentNote: ''
+      currentNote: '',
+      isForced: false
     });
   };
 
   const saveNotes = () => {
     updateProjectNotes(notesDialog.projectId, notesDialog.dayIndex, notesDialog.currentNote);
+    
+    // If this was a forced dialog (hours added without notes), now update the hours
+    if (notesDialog.isForced) {
+      const project = projects.find(p => p.id === notesDialog.projectId);
+      if (project) {
+        // Get the input value that triggered this
+        const inputElement = document.querySelector(`input[data-project="${notesDialog.projectId}"][data-day="${notesDialog.dayIndex}"]`) as HTMLInputElement;
+        if (inputElement) {
+          const hours = Number(inputElement.value);
+          const updatedProjects = projects.map(p => {
+            if (p.id === notesDialog.projectId) {
+              const updatedHours = { ...p.weeklyHours, [notesDialog.dayIndex]: hours };
+              return { ...p, weeklyHours: updatedHours };
+            }
+            return p;
+          });
+          autoSave(updatedProjects);
+        }
+      }
+    }
+    
     closeNotesDialog();
   };
 
@@ -223,13 +262,17 @@ const WeeklyTrackTime = () => {
 
         {/* View tabs */}
         <div className="flex space-x-2">
-          <Button variant="outline">Daily</Button>
+          <Button variant="outline" onClick={() => onViewChange('daily')}>
+            Daily
+          </Button>
           <Button variant="default" className="bg-green-500 hover:bg-green-600">
             Weekly
           </Button>
-          <Button variant="outline">Monthly</Button>
+          <Button variant="outline" onClick={() => onViewChange('monthly')}>
+            Monthly
+          </Button>
           <Badge variant="secondary" className="bg-purple-100 text-purple-800 ml-auto">
-            Total Weekly Hours: {totalWeeklyHours}
+            Total Hours For Week: {totalWeeklyHours}
           </Badge>
         </div>
       </div>
@@ -259,7 +302,13 @@ const WeeklyTrackTime = () => {
                 {weekDays.map((_, dayIndex) => (
                   <td 
                     key={dayIndex} 
-                    className="p-2 text-center border-r border-gray-300 cursor-pointer hover:bg-blue-50"
+                    className={`p-2 text-center border-r border-gray-300 cursor-pointer hover:bg-blue-50 ${
+                      project.weeklyHours[dayIndex] > 0 && project.weeklyNotes[dayIndex] 
+                        ? 'bg-green-100' 
+                        : project.weeklyHours[dayIndex] > 0 
+                        ? 'bg-yellow-100' 
+                        : ''
+                    }`}
                     onClick={() => handleCellClick(project.id, dayIndex)}
                   >
                     <Input
@@ -270,10 +319,16 @@ const WeeklyTrackTime = () => {
                       min="0"
                       step="0.5"
                       onClick={(e) => e.stopPropagation()}
+                      data-project={project.id}
+                      data-day={dayIndex}
                     />
                     {project.weeklyHours[dayIndex] > 0 && (
-                      <div className="text-xs text-blue-600 mt-1">
-                        {project.weeklyNotes[dayIndex] ? '📝 Has notes' : '⚠️ Notes required'}
+                      <div className="text-xs mt-1">
+                        {project.weeklyNotes[dayIndex] ? (
+                          <span className="text-green-600">📝 Has notes</span>
+                        ) : (
+                          <span className="text-red-600">⚠️ Notes required</span>
+                        )}
                       </div>
                     )}
                   </td>
@@ -285,21 +340,37 @@ const WeeklyTrackTime = () => {
       </div>
 
       {/* Notes Dialog */}
-      <Dialog open={notesDialog.isOpen} onOpenChange={(open) => !open && closeNotesDialog()}>
+      <Dialog 
+        open={notesDialog.isOpen} 
+        onOpenChange={(open) => {
+          if (!open && !notesDialog.isForced) {
+            closeNotesDialog();
+          }
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              Add Notes - {projects.find(p => p.id === notesDialog.projectId)?.name}
+              {notesDialog.isForced ? 'Notes Required' : 'Edit Notes'} - {projects.find(p => p.id === notesDialog.projectId)?.name}
               <div className="text-sm font-normal text-gray-600">
                 {weekDays[notesDialog.dayIndex] ? format(weekDays[notesDialog.dayIndex], 'EEEE, MMM do') : ''}
               </div>
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {notesDialog.isForced && (
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  When editing the hours of any given block you need to add notes and then save won't commit if it is over 0. 
+                  This text entry won't close if the number of hour is over 0 and there is no text. 
+                  The cell being edited should highlight to indicate it is being edited.
+                </p>
+              </div>
+            )}
             <Textarea
               value={notesDialog.currentNote}
               onChange={(e) => setNotesDialog({ ...notesDialog, currentNote: e.target.value })}
-              placeholder="Notes are required when hours > 0"
+              placeholder={notesDialog.isForced ? "Notes are required when hours > 0" : "Enter your notes..."}
               className="min-h-[100px] resize-y"
               maxLength={1000}
             />
@@ -307,10 +378,16 @@ const WeeklyTrackTime = () => {
               {notesDialog.currentNote.length}/1000 characters
             </div>
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={closeNotesDialog}>
-                Cancel
-              </Button>
-              <Button onClick={saveNotes} className="bg-green-500 hover:bg-green-600">
+              {!notesDialog.isForced && (
+                <Button variant="outline" onClick={closeNotesDialog}>
+                  Cancel
+                </Button>
+              )}
+              <Button 
+                onClick={saveNotes} 
+                className="bg-green-500 hover:bg-green-600"
+                disabled={notesDialog.isForced && !notesDialog.currentNote.trim()}
+              >
                 Save Notes
               </Button>
             </div>
