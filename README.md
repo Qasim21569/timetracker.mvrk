@@ -61,3 +61,15 @@ You can deploy this project using your preferred deployment platform.
 Yes, you can!
 
 To connect a domain, follow your deployment platform's instructions for custom domains.
+
+## Deploying to Vercel
+
+This project can be easily deployed to [Vercel](https://vercel.com/):
+
+1. Push your code to GitHub (already done).
+2. Go to https://vercel.com/import and import your repository.
+3. For the framework preset, select 'Vite'.
+4. Set the build command to `npm run build` and the output directory to `dist` (these are the Vite defaults).
+5. Click 'Deploy'.
+
+Vercel will automatically build and deploy your project. Subsequent pushes to your repository will trigger automatic deployments.

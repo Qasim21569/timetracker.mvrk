@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -72,6 +71,12 @@ const LoginPage = () => {
               <LogIn className="mr-2 h-5 w-5" /> Login
             </Button>
           </form>
+          {/* Development credentials note */}
+          <div className="mt-6 p-3 rounded bg-muted text-muted-foreground text-xs border">
+            <strong>Note:</strong> This app is in development.<br />
+            <span>Admin: <code>admin@example.com</code> / <code>password</code></span><br />
+            <span>User: <code>user@example.com</code> / <code>password</code></span>
+          </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
            <div className="relative w-full">
