@@ -6,7 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Filter, Download } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Filter, Download, Calendar as CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface ReportData {
   project: string;
@@ -32,19 +36,19 @@ const dummyReportData: ReportData[] = [
   }
 ];
 
-const allUsers = ['All Users', 'Vuk Stajic', 'Diego Oviedo', 'Pretend Person'];
-const allProjects = ['All Projects', 'Internal Meetings', 'Project X', 'Project Y'];
-const months = [
-  'January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025',
-  'July 2025', 'August 2025', 'September 2025', 'October 2025', 'November 2025', 'December 2025'
-];
+// Sort users alphabetically with "All Users" at the top
+const allUsers = ['All Users', ...['Vuk Stajic', 'Diego Oviedo', 'Pretend Person'].sort()];
+
+// Sort projects alphabetically with "All Projects" at the top  
+const allProjects = ['All Projects', ...['Internal Meetings', 'Project X', 'Project Y'].sort()];
 
 const ReportsInterface = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedUser, setSelectedUser] = useState('All Users');
   const [selectedProject, setSelectedProject] = useState('All Projects');
-  const [selectedMonth, setSelectedMonth] = useState('January 2025');
+  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [showReport, setShowReport] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   // Initialize filters from URL parameters
   useEffect(() => {
@@ -58,8 +62,15 @@ const ReportsInterface = () => {
     if (projectParam && allProjects.includes(projectParam)) {
       setSelectedProject(projectParam);
     }
-    if (monthParam && months.includes(monthParam)) {
-      setSelectedMonth(monthParam);
+    if (monthParam) {
+      try {
+        const parsedDate = new Date(monthParam);
+        if (!isNaN(parsedDate.getTime())) {
+          setSelectedMonth(parsedDate);
+        }
+      } catch (error) {
+        console.log('Invalid date parameter');
+      }
     }
 
     // If any parameters were set, automatically generate the report
@@ -70,6 +81,13 @@ const ReportsInterface = () => {
 
   const handleGenerateReport = () => {
     setShowReport(true);
+  };
+
+  const handleMonthSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedMonth(date);
+      setIsCalendarOpen(false);
+    }
   };
 
   const calculateUserTotals = () => {
@@ -135,16 +153,29 @@ const ReportsInterface = () => {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Month</label>
-              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {months.map(month => (
-                    <SelectItem key={month} value={month}>{month}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !selectedMonth && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedMonth ? format(selectedMonth, "MMMM yyyy") : "Select month"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedMonth}
+                    onSelect={handleMonthSelect}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
@@ -169,7 +200,7 @@ const ReportsInterface = () => {
             <div className="flex gap-2">
               <Badge variant="outline">{selectedUser}</Badge>
               <Badge variant="outline">{selectedProject}</Badge>
-              <Badge variant="outline">{selectedMonth}</Badge>
+              <Badge variant="outline">{format(selectedMonth, "MMMM yyyy")}</Badge>
             </div>
           </CardHeader>
           <CardContent>
