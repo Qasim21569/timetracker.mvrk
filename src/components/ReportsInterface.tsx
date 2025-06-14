@@ -102,8 +102,37 @@ const ReportsInterface = () => {
     return dummyReportData.reduce((sum, project) => sum + project.projectTotal, 0);
   };
 
+  // Filter data based on selections
+  const getFilteredData = () => {
+    let filteredData = [...dummyReportData];
+    
+    // Filter by project if not "All Projects"
+    if (selectedProject !== 'All Projects') {
+      filteredData = filteredData.filter(item => item.project === selectedProject);
+    }
+    
+    return filteredData;
+  };
+
+  // Get visible users based on selection
+  const getVisibleUsers = () => {
+    if (selectedUser === 'All Users') {
+      return ['Vuk Stajic', 'Diego Oviedo', 'Pretend Person'];
+    }
+    return [selectedUser];
+  };
+
   const userTotals = calculateUserTotals();
   const overallTotal = calculateOverallTotal();
+  const filteredData = getFilteredData();
+  const visibleUsers = getVisibleUsers();
+
+  // Determine what to show based on selections
+  const showAllUsers = selectedUser === 'All Users';
+  const showAllProjects = selectedProject === 'All Projects';
+  const showProjectTotals = showAllUsers;
+  const showUserTotals = showAllProjects;
+  const showOverallTotal = showAllUsers && showAllProjects;
 
   return (
     <div className="space-y-6">
@@ -208,29 +237,39 @@ const ReportsInterface = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Project</TableHead>
-                  <TableHead className="text-center">Vuk Stajic</TableHead>
-                  <TableHead className="text-center">Diego Oviedo</TableHead>
-                  <TableHead className="text-center">Pretend Person</TableHead>
-                  <TableHead className="text-center">Total Hours</TableHead>
+                  {visibleUsers.map(user => (
+                    <TableHead key={user} className="text-center">{user}</TableHead>
+                  ))}
+                  {showProjectTotals && (
+                    <TableHead className="text-center">Project Totals</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {dummyReportData.map((row) => (
+                {filteredData.map((row) => (
                   <TableRow key={row.project}>
                     <TableCell className="font-medium">{row.project}</TableCell>
-                    <TableCell className="text-center">{row.users['Vuk Stajic']}</TableCell>
-                    <TableCell className="text-center">{row.users['Diego Oviedo']}</TableCell>
-                    <TableCell className="text-center">{row.users['Pretend Person']}</TableCell>
-                    <TableCell className="text-center font-medium">{row.projectTotal}</TableCell>
+                    {visibleUsers.map(user => (
+                      <TableCell key={user} className="text-center">{row.users[user]}</TableCell>
+                    ))}
+                    {showProjectTotals && (
+                      <TableCell className="text-center font-medium">{row.projectTotal}</TableCell>
+                    )}
                   </TableRow>
                 ))}
-                <TableRow className="border-t-2">
-                  <TableCell className="font-bold">Total Hours</TableCell>
-                  <TableCell className="text-center font-bold">{userTotals['Vuk Stajic']}</TableCell>
-                  <TableCell className="text-center font-bold">{userTotals['Diego Oviedo']}</TableCell>
-                  <TableCell className="text-center font-bold">{userTotals['Pretend Person']}</TableCell>
-                  <TableCell className="text-center font-bold text-primary">{overallTotal}</TableCell>
-                </TableRow>
+                {showUserTotals && (
+                  <TableRow className="border-t-2">
+                    <TableCell className="font-bold">User Totals</TableCell>
+                    {visibleUsers.map(user => (
+                      <TableCell key={user} className="text-center font-bold">{userTotals[user]}</TableCell>
+                    ))}
+                    {showOverallTotal && (
+                      <TableCell className="text-center font-bold text-primary bg-blue-600 text-white">
+                        Overall Total<br/>{overallTotal}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>
