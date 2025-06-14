@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -38,7 +39,7 @@ const EditProjectForm = ({ project, onClose }: EditProjectFormProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!projectName || (active && assignedUsers.length === 0)) {
+    if (!projectName.trim() || (active && assignedUsers.length === 0)) {
       alert('Please fill in all required fields');
       return;
     }
@@ -50,110 +51,116 @@ const EditProjectForm = ({ project, onClose }: EditProjectFormProps) => {
   };
 
   return (
-    <Card className="max-w-4xl mx-auto border-2 border-gray-800">
-      <CardHeader>
-        <CardTitle>Edit Project</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <Label htmlFor="projectName" className="bg-gray-300 p-2 rounded border-2 border-gray-800 block text-center font-medium mb-2">
-              Project Name*
-            </Label>
-            <Input
-              id="projectName"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              placeholder="Default To What The Name Already Was"
-              className="border-2 border-gray-800"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <Label className="bg-gray-300 p-2 rounded border-2 border-gray-800 block text-center font-medium mb-2">
-                Available Users
+    <div className="max-w-6xl mx-auto">
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit Project</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="projectName">
+                Project Name <span className="text-red-500">*</span>
               </Label>
-              <div className="border-2 border-gray-800 rounded-lg p-4 min-h-[200px] bg-gray-100">
-                <p className="text-center text-gray-600 mb-4">LIST ALL ACTIVE NOT ALREADY ASSIGNED USERS HERE BY DEFAULT</p>
-                <div className="space-y-2">
-                  {availableUsers.map((user) => (
-                    <div key={user} className="flex justify-between items-center p-2 bg-white border border-gray-300 rounded">
-                      <span>{user}</span>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => moveToAssigned(user)}
-                        className="text-xs"
-                      >
-                        →
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+              <Input
+                id="projectName"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                placeholder="Enter project name"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <Label>Available Users</Label>
+                <Card className="min-h-[300px]">
+                  <CardContent className="p-4">
+                    {availableUsers.length === 0 ? (
+                      <p className="text-center text-muted-foreground py-8">
+                        All users have been assigned
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {availableUsers.map((user) => (
+                          <div key={user} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                            <span className="font-medium">{user}</span>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => moveToAssigned(user)}
+                            >
+                              <ArrowRight className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="space-y-4">
+                <Label>
+                  Assigned Users <span className="text-red-500">*</span>
+                </Label>
+                <Card className="min-h-[300px]">
+                  <CardContent className="p-4">
+                    {assignedUsers.length === 0 ? (
+                      <p className="text-center text-muted-foreground py-8">
+                        No users assigned
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {assignedUsers.map((user) => (
+                          <div key={user} className="flex items-center justify-between p-3 bg-primary/10 rounded-lg">
+                            <span className={`font-medium ${user === 'Pretend Person' ? 'italic text-muted-foreground' : ''}`}>
+                              {user}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeFromAssigned(user)}
+                            >
+                              <ArrowLeft className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
             </div>
 
-            <div>
-              <Label className="bg-gray-300 p-2 rounded border-2 border-gray-800 block text-center font-medium mb-2">
-                Assigned Users*
+            <div className="flex items-center space-x-4 p-4 bg-muted rounded-lg">
+              <Label htmlFor="active-switch" className="text-sm font-medium">
+                Project Active
               </Label>
-              <div className="border-2 border-gray-800 rounded-lg p-4 min-h-[200px] bg-gray-100">
-                <p className="text-center text-gray-600 mb-4 text-sm">
-                  LIST ALL ALREADY ASSIGNED USERS HERE [DON'T HIDE NON-ACTIVE USERS IF ASSIGNED, MAKE THEM ITALIC/DIFFERENT FONT FOR OBVIOUSLY NOTICING]
-                </p>
-                <div className="space-y-2">
-                  {assignedUsers.map((user) => (
-                    <div key={user} className="flex justify-between items-center p-2 bg-white border border-gray-300 rounded">
-                      <span className={user === 'Pretend Person' ? 'italic text-gray-500' : ''}>{user}</span>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => removeFromAssigned(user)}
-                        className="text-xs"
-                      >
-                        ←
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <Switch
+                id="active-switch"
+                checked={active}
+                onCheckedChange={setActive}
+              />
+              <span className="text-sm text-muted-foreground">
+                {active ? 'Active' : 'Inactive'}
+              </span>
             </div>
-          </div>
 
-          <div>
-            <Label className="bg-gray-300 p-2 rounded border-2 border-gray-800 block text-center font-medium mb-2">
-              Active
-            </Label>
-            <div className="flex justify-center">
-              <div className="w-6 h-6 border-2 border-black flex items-center justify-center bg-white">
-                <Checkbox
-                  checked={active}
-                  onCheckedChange={(checked) => setActive(checked as boolean)}
-                />
-              </div>
+            <div className="flex gap-4 pt-4">
+              <Button type="submit">
+                Save Changes
+              </Button>
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
             </div>
-          </div>
-
-          <div className="flex gap-4">
-            <Button 
-              type="submit"
-              className="bg-gray-300 text-black border-2 border-gray-800 hover:bg-gray-400"
-            >
-              Save Edits
-            </Button>
-            <Button 
-              type="button"
-              onClick={onClose}
-              variant="outline"
-              className="border-2 border-gray-800"
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
