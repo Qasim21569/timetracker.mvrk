@@ -1,9 +1,8 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
+/* Enhanced design system with modern UI improvements */
 
 @layer base {
   :root {
@@ -22,36 +21,41 @@
     --secondary: 220 9% 46%; /* #6B7280 */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 14% 90%; /* #E5E7EB */
+    --muted: 220 14% 96%; /* Lighter muted background */
     --muted-foreground: 220 9% 46%; /* #6B7280 - for less important text */
 
-    --accent: 220 14% 93%; /* Lighter accent derived from primary */
+    --accent: 220 14% 95%; /* Softer accent */
     --accent-foreground: 220 13% 13%;
 
     --destructive: 0 84% 60%; /* #EF4444 */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 88%; /* #E5E7EB - for subtle separation */
-    --input: 220 13% 88%;
+    --border: 220 13% 91%; /* Softer borders */
+    --input: 220 13% 94%; /* Softer input backgrounds */
     --ring: 221 83% 53%; /* Primary color for focus rings */
 
-    --radius: 0.5rem; /* 8px */
+    --radius: 0.75rem; /* 12px - More rounded */
 
     --sidebar-background: 0 0% 100%; /* #FFFFFF */
     --sidebar-foreground: 220 13% 13%;
     --sidebar-primary: 221 83% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 93%;
+    --sidebar-accent: 220 14% 95%;
     --sidebar-accent-foreground: 220 13% 13%;
-    --sidebar-border: 220 13% 88%;
+    --sidebar-border: 220 13% 91%;
     --sidebar-ring: 221 83% 53%;
 
     --success: 145 77% 40%; /* #10B981 */
     --warning: 36 93% 53%; /* #F59E0B */
+    
+    /* New gradient variables */
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --gradient-card: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
   }
 
   .dark {
-    /* TODO: Define dark theme colors if needed later */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
@@ -100,13 +104,169 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 text-foreground font-sans;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Performance optimizations */
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    will-change: scroll-position;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold text-foreground;
+  }
+
+  /* Performance optimizations for common elements */
+  button, a, [role="button"] {
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+  }
+
+  /* Optimize scrollable containers */
+  .overflow-auto, .overflow-x-auto, .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+    will-change: scroll-position;
+  }
+}
+
+@layer components {
+  /* Enhanced Card Styles */
+  .card-enhanced {
+    @apply bg-gradient-to-br from-white to-slate-50 shadow-lg shadow-blue-500/5 border border-slate-200/50 backdrop-blur-sm;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
+
+  /* Optimized Floating Animation */
+  .floating {
+    animation: floating 3s ease-in-out infinite;
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+  }
+
+  @keyframes floating {
+    0%, 100% { 
+      transform: translate3d(0, 0px, 0); 
+    }
+    50% { 
+      transform: translate3d(0, -10px, 0); 
+    }
+  }
+
+  /* Gradient Text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    backface-visibility: hidden;
+  }
+
+  /* Enhanced Buttons with GPU acceleration */
+  .btn-gradient {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translate3d(0, 0, 0);
+    will-change: transform, box-shadow;
+  }
+
+  .btn-gradient:hover {
+    transform: translate3d(0, -2px, 0) scale(1.02);
+  }
+
+  /* Status Indicators */
+  .status-indicator {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .status-active {
+    @apply bg-emerald-100 text-emerald-800 border border-emerald-200;
+  }
+
+  .status-inactive {
+    @apply bg-slate-100 text-slate-600 border border-slate-200;
+  }
+
+  /* Enhanced Form Inputs */
+  .input-enhanced {
+    @apply border-slate-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400;
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translate3d(0, 0, 0);
+  }
+
+  /* Table Enhancements with performance optimization */
+  .table-enhanced {
+    @apply bg-gradient-to-br from-white to-slate-50 backdrop-blur-sm border border-slate-200/50;
+    contain: layout style paint;
+  }
+
+  .table-row-enhanced {
+    @apply hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50;
+    transition: background 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translate3d(0, 0, 0);
+    will-change: background;
+  }
+
+  /* Header Glass Effect with performance optimization */
+  .header-glass {
+    @apply bg-white/80 backdrop-blur-md border-b border-white/20 shadow-sm;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+    contain: layout style;
+  }
+
+  /* Sidebar Glass Effect */
+  .sidebar-glass {
+    @apply bg-white/90 backdrop-blur-md border-r border-white/20;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@layer utilities {
+  /* Custom Shadows with performance optimization */
+  .shadow-soft {
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+    transform: translate3d(0, 0, 0);
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+    transform: translate3d(0, 0, 0);
+  }
+
+  /* Glass Morphism with GPU acceleration */
+  .glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/20;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
+
+  .glass-card {
+    @apply bg-white/60 backdrop-blur-md border border-white/30 shadow-xl;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
+
+  /* Performance utilities */
+  .gpu-accelerated {
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
+
+  .smooth-transition {
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .fast-transition {
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Optimized for scrolling performance */
+  .scroll-optimized {
+    -webkit-overflow-scrolling: touch;
+    will-change: scroll-position;
+    contain: layout style paint;
   }
 }

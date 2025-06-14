@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import AdminTabs from '@/components/layout/AdminTabs';
+import { Button } from '@/components/ui/button';
+import { Plus, Users, UserCheck, UserX } from 'lucide-react';
 import UserManagementTable from '@/components/UserManagementTable';
 import AddUserForm from '@/components/AddUserForm';
 import EditUserForm from '@/components/EditUserForm';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 
 interface User {
   id: string;
@@ -36,31 +36,65 @@ const UserManagementPage = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-4 md:space-y-6">
+      <div className="space-y-6 md:space-y-8">
         <AdminTabs />
         
+        <div className="card-enhanced rounded-2xl p-6 md:p-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-gradient-to-br from-blue-500 to-purple-500 p-2 rounded-xl shadow-lg">
+                  <Users className="h-6 w-6 text-white" />
+                </div>
+                <h1 className="text-3xl md:text-4xl font-bold gradient-text">User Management</h1>
+              </div>
+              <p className="text-base md:text-lg text-slate-600 max-w-2xl">
+                Manage user accounts, permissions, and access controls for your team members.
+              </p>
+              
+              {/* Quick Stats */}
+              <div className="flex items-center gap-6 mt-4 pt-4 border-t border-slate-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                  <span className="text-sm text-slate-600">3 Active Users</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
+                  <span className="text-sm text-slate-600">1 Inactive User</span>
+                </div>
+              </div>
+            </div>
+            
+            <Button 
+              onClick={handleAddUser} 
+              className="btn-gradient w-full sm:w-auto px-6 py-3 text-base font-medium"
+              size="lg"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Add New User
+            </Button>
+          </div>
+        </div>
+
         {currentView === 'table' && (
           <>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold">User Management</h1>
-                <p className="text-sm md:text-base text-muted-foreground">Manage user accounts and permissions</p>
-              </div>
-              <Button onClick={handleAddUser} className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-2" />
-                Add User
-              </Button>
+            {/* Enhanced Table Container */}
+            <div className="card-enhanced rounded-2xl overflow-hidden shadow-soft">
+              <UserManagementTable onEditUser={handleEditUser} />
             </div>
-            <UserManagementTable onEditUser={handleEditUser} />
           </>
         )}
 
         {currentView === 'add' && (
-          <AddUserForm onClose={handleCloseForm} />
+          <div className="card-enhanced rounded-2xl p-6 md:p-8">
+            <AddUserForm onClose={handleCloseForm} />
+          </div>
         )}
 
         {currentView === 'edit' && selectedUser && (
-          <EditUserForm user={selectedUser} onClose={handleCloseForm} />
+          <div className="card-enhanced rounded-2xl p-6 md:p-8">
+            <EditUserForm user={selectedUser} onClose={handleCloseForm} />
+          </div>
         )}
       </div>
     </MainLayout>

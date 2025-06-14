@@ -137,13 +137,13 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
         {/* View tabs */}
         <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 sm:items-center">
           <div className="flex space-x-2">
-            <Button variant="outline" onClick={() => onViewChange('daily')} className="flex-1 sm:flex-none">
+            <Button variant="outline" onClick={() => onViewChange('daily')} className="hover:bg-blue-50 flex-1 sm:flex-none">
               Daily
             </Button>
-            <Button variant="outline" onClick={() => onViewChange('weekly')} className="flex-1 sm:flex-none">
+            <Button variant="outline" onClick={() => onViewChange('weekly')} className="hover:bg-blue-50 flex-1 sm:flex-none">
               Weekly
             </Button>
-            <Button variant="default" className="bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none">
+            <Button variant="default" className="bg-blue-600 hover:bg-blue-700 text-white flex-1 sm:flex-none">
               Monthly
             </Button>
           </div>

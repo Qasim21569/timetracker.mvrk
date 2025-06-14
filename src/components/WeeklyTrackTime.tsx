@@ -263,13 +263,13 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
         {/* View tabs */}
         <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 sm:items-center">
           <div className="flex space-x-2">
-            <Button variant="outline" onClick={() => onViewChange('daily')} className="flex-1 sm:flex-none">
+            <Button variant="outline" onClick={() => onViewChange('daily')} className="hover:bg-blue-50 flex-1 sm:flex-none">
               Daily
             </Button>
-            <Button variant="default" className="bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none">
+            <Button variant="default" className="bg-blue-600 hover:bg-blue-700 text-white flex-1 sm:flex-none">
               Weekly
             </Button>
-            <Button variant="outline" onClick={() => onViewChange('monthly')} className="flex-1 sm:flex-none">
+            <Button variant="outline" onClick={() => onViewChange('monthly')} className="hover:bg-blue-50 flex-1 sm:flex-none">
               Monthly
             </Button>
           </div>
@@ -385,7 +385,7 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
             </Button>
             <Button 
               onClick={saveNotes} 
-              className="bg-blue-600 hover:bg-blue-700 order-1 sm:order-2"
+              className="bg-blue-600 hover:bg-blue-700 text-white order-1 sm:order-2"
               disabled={notesDialog.isForced && !notesDialog.currentNote.trim()}
             >
               Save Notes

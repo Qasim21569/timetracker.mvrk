@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Filter, Download, Printer } from 'lucide-react';
+import { Filter, Download, Printer, BarChart3, TrendingUp, Calendar, Users } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface ReportData {
@@ -151,27 +151,39 @@ const ReportsInterface = () => {
   const showPrintReport = showAllUsers && !showAllProjects;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Reports</h1>
-          <p className="text-muted-foreground">Generate and view time tracking reports</p>
+    <div className="space-y-6 md:space-y-8 p-6 md:p-8">
+      {/* Enhanced Header */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-2 rounded-xl shadow-lg">
+            <BarChart3 className="h-6 w-6 text-white" />
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold gradient-text">Reports</h1>
         </div>
+        <p className="text-base md:text-lg text-slate-600 max-w-2xl">
+          Generate comprehensive time tracking reports and analyze team productivity patterns.
+        </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
+      {/* Enhanced Filters Card */}
+      <Card className="card-enhanced border-0 shadow-soft">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-3 text-xl">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-2 rounded-lg">
+              <Filter className="h-5 w-5 text-white" />
+            </div>
             Report Filters
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium">User</label>
+              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                <Users className="h-4 w-4 text-slate-500" />
+                User
+              </label>
               <Select value={selectedUser} onValueChange={setSelectedUser}>
-                <SelectTrigger>
+                <SelectTrigger className="input-enhanced h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -183,9 +195,12 @@ const ReportsInterface = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Project</label>
+              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-slate-500" />
+                Project
+              </label>
               <Select value={selectedProject} onValueChange={setSelectedProject}>
-                <SelectTrigger>
+                <SelectTrigger className="input-enhanced h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -197,13 +212,16 @@ const ReportsInterface = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Month</label>
+              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-slate-500" />
+                Month
+              </label>
               <div className="grid grid-cols-2 gap-2">
                 <Select 
                   value={months[selectedMonth.getMonth()]} 
                   onValueChange={handleMonthChange}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="input-enhanced h-11">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -216,7 +234,7 @@ const ReportsInterface = () => {
                   value={selectedMonth.getFullYear().toString()} 
                   onValueChange={handleYearChange}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="input-enhanced h-11">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -229,90 +247,110 @@ const ReportsInterface = () => {
             </div>
           </div>
 
-          <div className="flex gap-4">
-            <Button onClick={handleGenerateReport}>
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-200">
+            <Button 
+              onClick={handleGenerateReport}
+              className="btn-gradient px-6 py-3 text-base font-medium"
+              size="lg"
+            >
               Generate Report
             </Button>
             {showReport && (
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-            )}
-            {showReport && showPrintReport && (
-              <Button variant="outline" className="bg-purple-100 hover:bg-purple-200 text-purple-800 border-purple-300">
-                <Printer className="h-4 w-4 mr-2" />
-                Print Report
-              </Button>
+              <>
+                <Button variant="outline" className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Data
+                </Button>
+                {showPrintReport && (
+                  <Button variant="outline" className="bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 text-purple-700 border-purple-200">
+                    <Printer className="h-4 w-4 mr-2" />
+                    Print Report
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </CardContent>
       </Card>
 
+      {/* Enhanced Results Card */}
       {showReport && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Time Report Results</CardTitle>
-            <div className="flex gap-2">
-              <Badge variant="outline">{selectedUser}</Badge>
-              <Badge variant="outline">{selectedProject}</Badge>
-              <Badge variant="outline">{format(selectedMonth, "MMMM yyyy")}</Badge>
+        <Card className="card-enhanced border-0 shadow-soft">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-3 text-xl">
+              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-2 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-white" />
+              </div>
+              Time Report Results
+            </CardTitle>
+            <div className="flex flex-wrap gap-2 mt-3">
+              <Badge className="bg-blue-100 text-blue-800 border border-blue-200">{selectedUser}</Badge>
+              <Badge className="bg-emerald-100 text-emerald-800 border border-emerald-200">{selectedProject}</Badge>
+              <Badge className="bg-purple-100 text-purple-800 border border-purple-200">{format(selectedMonth, "MMMM yyyy")}</Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Project</TableHead>
-                  {isSimpleUserReport ? (
-                    <TableHead className="text-center">{selectedUser}</TableHead>
-                  ) : (
-                    visibleUsers.map(user => (
-                      <TableHead key={user} className="text-center">{user}</TableHead>
-                    ))
-                  )}
-                  {showProjectTotals && (
-                    <TableHead className="text-center">Project Totals</TableHead>
-                  )}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredData.map((row) => (
-                  <TableRow key={row.project}>
-                    <TableCell className="font-medium">{row.project}</TableCell>
+            <div className="table-enhanced rounded-xl overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-purple-50">
+                    <TableHead className="font-semibold text-slate-700 py-4">Project</TableHead>
                     {isSimpleUserReport ? (
-                      <TableCell className="text-center">{row.users[selectedUser]}</TableCell>
+                      <TableHead className="text-center font-semibold text-slate-700">{selectedUser}</TableHead>
                     ) : (
                       visibleUsers.map(user => (
-                        <TableCell key={user} className="text-center">{row.users[user]}</TableCell>
+                        <TableHead key={user} className="text-center font-semibold text-slate-700">{user}</TableHead>
                       ))
                     )}
                     {showProjectTotals && (
-                      <TableCell className="text-center font-medium">{row.projectTotal}</TableCell>
+                      <TableHead className="text-center font-semibold text-slate-700">Project Totals</TableHead>
                     )}
                   </TableRow>
-                ))}
-                {(showUserTotals || isSimpleUserReport) && (
-                  <TableRow className="border-t-2">
-                    <TableCell className="font-bold">
-                      {isSimpleUserReport ? 'User Totals' : 'User Totals'}
-                    </TableCell>
-                    {isSimpleUserReport ? (
-                      <TableCell className="text-center font-bold">{userTotals[selectedUser]}</TableCell>
-                    ) : (
-                      visibleUsers.map(user => (
-                        <TableCell key={user} className="text-center font-bold">{userTotals[user]}</TableCell>
-                      ))
-                    )}
-                    {showOverallTotal && (
-                      <TableCell className="text-center font-bold text-primary bg-blue-600 text-white">
-                        Overall Total<br/>{overallTotal}
+                </TableHeader>
+                <TableBody>
+                  {filteredData.map((row, index) => (
+                    <TableRow 
+                      key={row.project} 
+                      className={`
+                        table-row-enhanced border-b border-slate-100
+                        ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}
+                      `}
+                    >
+                      <TableCell className="font-semibold text-slate-800">{row.project}</TableCell>
+                      {isSimpleUserReport ? (
+                        <TableCell className="text-center">{row.users[selectedUser]}</TableCell>
+                      ) : (
+                        visibleUsers.map(user => (
+                          <TableCell key={user} className="text-center">{row.users[user]}</TableCell>
+                        ))
+                      )}
+                      {showProjectTotals && (
+                        <TableCell className="text-center font-semibold">{row.projectTotal}</TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                  {(showUserTotals || isSimpleUserReport) && (
+                    <TableRow className="border-t-2 border-slate-300 bg-gradient-to-r from-blue-50 to-purple-50">
+                      <TableCell className="font-bold text-slate-800">
+                        {isSimpleUserReport ? 'User Totals' : 'User Totals'}
                       </TableCell>
-                    )}
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                      {isSimpleUserReport ? (
+                        <TableCell className="text-center font-bold">{userTotals[selectedUser]}</TableCell>
+                      ) : (
+                        visibleUsers.map(user => (
+                          <TableCell key={user} className="text-center font-bold">{userTotals[user]}</TableCell>
+                        ))
+                      )}
+                      {showOverallTotal && (
+                        <TableCell className="text-center font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
+                          Overall Total<br/>{overallTotal}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}

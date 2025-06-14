@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
-import { Building, Home, Users, Briefcase, BarChart3, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { Building, Home, Users, Briefcase, BarChart3, LogOut, Settings, ChevronDown, Clock } from 'lucide-react';
 
 const getPageTitle = (pathname: string): string => {
   if (pathname === '/') return 'Track Time';
@@ -38,82 +37,83 @@ const AppHeader = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <header className="sticky top-0 z-50 w-full header-glass shadow-soft">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-        {/* Logo and Company Name */}
-        <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center gap-2">
-            <Building className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold text-blue-600">TimeTracker</span>
+        {/* Logo and Company Name - Enhanced */}
+        <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg blur-md opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+              <div className="relative bg-gradient-to-br from-blue-600 to-purple-600 p-2 rounded-lg shadow-lg">
+                <Clock className="h-5 w-5 text-white" />
+              </div>
+            </div>
+            <span className="text-xl font-bold gradient-text">TimeTracker</span>
           </Link>
         </div>
 
-        {/* Navigation */}
-        <nav className="hidden md:flex items-center gap-1">
-          {navItems.map((item) => (
-            <Button
-              key={item.label}
-              variant={location.pathname === item.href ? "default" : "ghost"}
-              asChild
-              className={location.pathname === item.href ? "bg-blue-600 hover:bg-blue-700" : ""}
-            >
-              <Link to={item.href} className="flex items-center gap-2">
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            </Button>
-          ))}
-        </nav>
-
-        {/* User Menu */}
+        {/* User Menu - Enhanced */}
         <div className="flex items-center gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 h-10">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
-                  <AvatarFallback>{currentUser.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <div className="hidden md:flex flex-col items-start">
-                  <span className="text-sm font-medium">{currentUser.name}</span>
-                  <span className="text-xs text-muted-foreground capitalize">{currentUser.role}</span>
+              <Button variant="ghost" className="flex items-center gap-3 h-12 px-3 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 rounded-xl">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full opacity-20 animate-pulse"></div>
+                  <Avatar className="h-9 w-9 ring-2 ring-blue-200 ring-offset-2">
+                    <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white font-semibold">
+                      {currentUser.name.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                 </div>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                <div className="hidden md:flex flex-col items-start">
+                  <span className="text-sm font-medium text-slate-700">{currentUser.name}</span>
+                  <span className="text-xs text-slate-500 capitalize font-medium">{currentUser.role}</span>
+                </div>
+                <ChevronDown className="h-4 w-4 text-slate-400 transition-transform duration-200" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-white">
-              <div className="flex items-center gap-2 p-2">
-                <Avatar className="h-8 w-8">
+            <DropdownMenuContent align="end" className="w-64 glass-card p-2">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 mb-2">
+                <Avatar className="h-10 w-10 ring-2 ring-blue-200">
                   <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
-                  <AvatarFallback>{currentUser.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white font-semibold">
+                    {currentUser.name.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium">{currentUser.name}</span>
-                  <span className="text-xs text-muted-foreground">{currentUser.email}</span>
+                  <span className="text-sm font-semibold text-slate-700">{currentUser.name}</span>
+                  <span className="text-xs text-slate-500">{currentUser.email}</span>
                 </div>
               </div>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="bg-slate-200" />
               
               {/* Mobile Navigation */}
               <div className="md:hidden">
                 {navItems.map((item) => (
-                  <DropdownMenuItem key={item.label} asChild>
-                    <Link to={item.href} className="flex items-center gap-2">
+                  <DropdownMenuItem key={item.label} asChild className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 rounded-lg my-1">
+                    <Link to={item.href} className="flex items-center gap-3 p-2">
                       <item.icon className="h-4 w-4" />
                       {item.label}
                     </Link>
                   </DropdownMenuItem>
                 ))}
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-slate-200 my-2" />
               </div>
 
-              <DropdownMenuItem onClick={() => navigate('/settings')}>
-                <Settings className="mr-2 h-4 w-4" />
+              <DropdownMenuItem 
+                onClick={() => navigate('/settings')} 
+                className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 rounded-lg my-1 p-2"
+              >
+                <Settings className="mr-3 h-4 w-4" />
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
-                <LogOut className="mr-2 h-4 w-4" />
+              <DropdownMenuSeparator className="bg-slate-200 my-2" />
+              <DropdownMenuItem 
+                onClick={handleSignOut} 
+                className="text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 rounded-lg my-1 p-2"
+              >
+                <LogOut className="mr-3 h-4 w-4" />
                 Sign Out
               </DropdownMenuItem>
             </DropdownMenuContent>
