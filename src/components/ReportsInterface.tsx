@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Filter, Download, Calendar as CalendarIcon } from 'lucide-react';
+import { Filter, Download, Calendar as CalendarIcon, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -136,6 +135,9 @@ const ReportsInterface = () => {
   
   // Special case: Single User + All Projects = Simple table format
   const isSimpleUserReport = !showAllUsers && showAllProjects;
+  
+  // Special case: All Users + Specific Project = Show Print Report button
+  const showPrintReport = showAllUsers && !showAllProjects;
 
   return (
     <div className="space-y-6">
@@ -219,6 +221,12 @@ const ReportsInterface = () => {
               <Button variant="outline">
                 <Download className="h-4 w-4 mr-2" />
                 Export
+              </Button>
+            )}
+            {showReport && showPrintReport && (
+              <Button variant="outline" className="bg-purple-100 hover:bg-purple-200 text-purple-800 border-purple-300">
+                <Printer className="h-4 w-4 mr-2" />
+                Print Report
               </Button>
             )}
           </div>
