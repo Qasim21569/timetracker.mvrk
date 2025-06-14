@@ -41,7 +41,7 @@ const TrackTimePage = () => {
 
   return (
     <MainLayout>
-      <div className="container mx-auto p-6">
+      <div className="max-w-7xl mx-auto">
         {renderCurrentView()}
       </div>
     </MainLayout>
