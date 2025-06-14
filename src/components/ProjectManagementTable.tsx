@@ -2,6 +2,9 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { Edit, FileText, Users } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -22,48 +25,48 @@ interface ProjectManagementTableProps {
 
 const ProjectManagementTable = ({ onEditProject }: ProjectManagementTableProps) => {
   return (
-    <div className="border-2 border-gray-800 rounded-lg overflow-hidden">
+    <Card>
       <Table>
         <TableHeader>
-          <TableRow className="bg-teal-700">
-            <TableHead className="text-white font-bold border-r border-gray-300">Name</TableHead>
-            <TableHead className="text-white font-bold border-r border-gray-300">Active</TableHead>
-            <TableHead className="text-white font-bold border-r border-gray-300">Assigned Users</TableHead>
-            <TableHead className="text-white font-bold">Actions</TableHead>
+          <TableRow>
+            <TableHead>Project Name</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Assigned Users</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {dummyProjects.map((project, index) => (
-            <TableRow key={project.id} className={index % 2 === 0 ? 'bg-gray-200' : 'bg-gray-300'}>
-              <TableCell className="border-r border-gray-400 font-medium">{project.name}</TableCell>
-              <TableCell className="border-r border-gray-400">
-                <div className="flex justify-center">
-                  <div className="w-6 h-6 border-2 border-black flex items-center justify-center bg-white">
-                    {project.active ? '✓' : '✗'}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell className="border-r border-gray-400">
-                {project.assignedUsers.map((user, userIndex) => (
-                  <span key={userIndex} className={!project.active && user === 'Pretend Person' ? 'italic text-gray-500' : ''}>
-                    {user}{userIndex < project.assignedUsers.length - 1 ? ', ' : ''}
-                  </span>
-                ))}
+          {dummyProjects.map((project) => (
+            <TableRow key={project.id}>
+              <TableCell className="font-medium">{project.name}</TableCell>
+              <TableCell>
+                <Badge variant={project.active ? "default" : "secondary"}>
+                  {project.active ? 'Active' : 'Inactive'}
+                </Badge>
               </TableCell>
               <TableCell>
-                <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">
+                    {project.assignedUsers.map((user, index) => (
+                      <span key={index} className={!project.active && user === 'Pretend Person' ? 'italic text-muted-foreground' : ''}>
+                        {user}{index < project.assignedUsers.length - 1 ? ', ' : ''}
+                      </span>
+                    ))}
+                  </span>
+                </div>
+              </TableCell>
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-2">
                   <Button 
-                    variant="link" 
-                    className="text-blue-600 hover:text-blue-800 p-0 h-auto"
+                    variant="ghost" 
+                    size="sm"
                     onClick={() => onEditProject(project)}
                   >
-                    Edit
+                    <Edit className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant="link" 
-                    className="text-blue-600 hover:text-blue-800 p-0 h-auto"
-                  >
-                    View Reports
+                  <Button variant="ghost" size="sm">
+                    <FileText className="h-4 w-4" />
                   </Button>
                 </div>
               </TableCell>
@@ -71,7 +74,7 @@ const ProjectManagementTable = ({ onEditProject }: ProjectManagementTableProps) 
           ))}
         </TableBody>
       </Table>
-    </div>
+    </Card>
   );
 };
 

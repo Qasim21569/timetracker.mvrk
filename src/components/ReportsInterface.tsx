@@ -1,8 +1,11 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Filter, Download } from 'lucide-react';
 
 interface ReportData {
   project: string;
@@ -28,7 +31,7 @@ const dummyReportData: ReportData[] = [
   }
 ];
 
-const allUsers = ['Vuk Stajic', 'Diego Oviedo', 'Pretend Person'];
+const allUsers = ['All Users', 'Vuk Stajic', 'Diego Oviedo', 'Pretend Person'];
 const allProjects = ['All Projects', 'Internal Meetings', 'Project X', 'Project Y'];
 const months = [
   'January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025',
@@ -47,7 +50,7 @@ const ReportsInterface = () => {
 
   const calculateUserTotals = () => {
     const totals: { [key: string]: number } = {};
-    allUsers.forEach(user => {
+    ['Vuk Stajic', 'Diego Oviedo', 'Pretend Person'].forEach(user => {
       totals[user] = dummyReportData.reduce((sum, project) => sum + (project.users[user] || 0), 0);
     });
     return totals;
@@ -62,117 +65,121 @@ const ReportsInterface = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-4">
+      <div className="flex justify-between items-center">
         <div>
-          <Label className="bg-gray-300 p-2 rounded border-2 border-gray-800 block text-center font-medium mb-2">
-            User Select
-          </Label>
-          <select
-            value={selectedUser}
-            onChange={(e) => setSelectedUser(e.target.value)}
-            className="p-2 border-2 border-gray-800 rounded bg-white"
-          >
-            <option value="All Users">All Users</option>
-            {allUsers.map(user => (
-              <option key={user} value={user}>{user}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <Label className="bg-gray-300 p-2 rounded border-2 border-gray-800 block text-center font-medium mb-2">
-            Project Select
-          </Label>
-          <select
-            value={selectedProject}
-            onChange={(e) => setSelectedProject(e.target.value)}
-            className="p-2 border-2 border-gray-800 rounded bg-white"
-          >
-            {allProjects.map(project => (
-              <option key={project} value={project}>{project}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <Label className="bg-gray-300 p-2 rounded border-2 border-gray-800 block text-center font-medium mb-2">
-            Month Select
-          </Label>
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="p-2 border-2 border-gray-800 rounded bg-white"
-          >
-            {months.map(month => (
-              <option key={month} value={month}>{month}</option>
-            ))}
-          </select>
+          <h1 className="text-3xl font-bold">Reports</h1>
+          <p className="text-muted-foreground">Generate and view time tracking reports</p>
         </div>
       </div>
 
-      <Button
-        onClick={handleGenerateReport}
-        className="bg-gray-300 text-black border-2 border-gray-800 hover:bg-gray-400"
-      >
-        Generate Report
-      </Button>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Report Filters
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">User</label>
+              <Select value={selectedUser} onValueChange={setSelectedUser}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {allUsers.map(user => (
+                    <SelectItem key={user} value={user}>{user}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-      {showReport && (
-        <div className="border-4 border-blue-400 rounded-lg p-6 bg-blue-50">
-          <div className="text-center mb-4">
-            <p className="text-lg font-medium">
-              This section displays the results of the above chosen options ONLY if there is any project with any hours added.
-            </p>
-            <p className="text-sm text-gray-600">
-              Do not include projects with no hours entered by any user in the time period.
-            </p>
-            <p className="text-sm text-gray-600">
-              If no results of over 0 hours found, display "No Results Found For These Filters"
-            </p>
-          </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Project</label>
+              <Select value={selectedProject} onValueChange={setSelectedProject}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {allProjects.map(project => (
+                    <SelectItem key={project} value={project}>{project}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="flex justify-center mb-4">
-            <div className="flex gap-4 text-sm">
-              <span className="bg-gray-300 px-3 py-1 rounded border-2 border-gray-800">{selectedUser}</span>
-              <span className="bg-gray-300 px-3 py-1 rounded border-2 border-gray-800">{selectedProject}</span>
-              <span className="bg-gray-300 px-3 py-1 rounded border-2 border-gray-800">{selectedMonth}</span>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Month</label>
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map(month => (
+                    <SelectItem key={month} value={month}>{month}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          <div className="border-2 border-gray-800 rounded-lg overflow-hidden">
+          <div className="flex gap-4">
+            <Button onClick={handleGenerateReport}>
+              Generate Report
+            </Button>
+            {showReport && (
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {showReport && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Time Report Results</CardTitle>
+            <div className="flex gap-2">
+              <Badge variant="outline">{selectedUser}</Badge>
+              <Badge variant="outline">{selectedProject}</Badge>
+              <Badge variant="outline">{selectedMonth}</Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
             <Table>
               <TableHeader>
-                <TableRow className="bg-teal-700">
-                  <TableHead className="text-white font-bold border-r border-gray-300">Project</TableHead>
-                  <TableHead className="text-white font-bold border-r border-gray-300">Vuk Stajic</TableHead>
-                  <TableHead className="text-white font-bold border-r border-gray-300">Diego Oviedo</TableHead>
-                  <TableHead className="text-white font-bold border-r border-gray-300">Pretend Person</TableHead>
-                  <TableHead className="text-white font-bold">Project Totals</TableHead>
+                <TableRow>
+                  <TableHead>Project</TableHead>
+                  <TableHead className="text-center">Vuk Stajic</TableHead>
+                  <TableHead className="text-center">Diego Oviedo</TableHead>
+                  <TableHead className="text-center">Pretend Person</TableHead>
+                  <TableHead className="text-center">Total Hours</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {dummyReportData.map((row, index) => (
-                  <TableRow key={row.project} className={index % 2 === 0 ? 'bg-gray-200' : 'bg-gray-300'}>
-                    <TableCell className="border-r border-gray-400 font-medium">{row.project}</TableCell>
-                    <TableCell className="border-r border-gray-400 text-center">{row.users['Vuk Stajic']}</TableCell>
-                    <TableCell className="border-r border-gray-400 text-center">{row.users['Diego Oviedo']}</TableCell>
-                    <TableCell className="border-r border-gray-400 text-center">{row.users['Pretend Person']}</TableCell>
-                    <TableCell className="text-center">{row.projectTotal}</TableCell>
+                {dummyReportData.map((row) => (
+                  <TableRow key={row.project}>
+                    <TableCell className="font-medium">{row.project}</TableCell>
+                    <TableCell className="text-center">{row.users['Vuk Stajic']}</TableCell>
+                    <TableCell className="text-center">{row.users['Diego Oviedo']}</TableCell>
+                    <TableCell className="text-center">{row.users['Pretend Person']}</TableCell>
+                    <TableCell className="text-center font-medium">{row.projectTotal}</TableCell>
                   </TableRow>
                 ))}
-                <TableRow className="bg-blue-300">
-                  <TableCell className="border-r border-gray-400 font-bold">User Totals</TableCell>
-                  <TableCell className="border-r border-gray-400 text-center font-bold">{userTotals['Vuk Stajic']}</TableCell>
-                  <TableCell className="border-r border-gray-400 text-center font-bold">{userTotals['Diego Oviedo']}</TableCell>
-                  <TableCell className="border-r border-gray-400 text-center font-bold">{userTotals['Pretend Person']}</TableCell>
-                  <TableCell className="text-center font-bold bg-teal-700 text-white">
-                    Overall Total<br />{overallTotal}
-                  </TableCell>
+                <TableRow className="border-t-2">
+                  <TableCell className="font-bold">Total Hours</TableCell>
+                  <TableCell className="text-center font-bold">{userTotals['Vuk Stajic']}</TableCell>
+                  <TableCell className="text-center font-bold">{userTotals['Diego Oviedo']}</TableCell>
+                  <TableCell className="text-center font-bold">{userTotals['Pretend Person']}</TableCell>
+                  <TableCell className="text-center font-bold text-primary">{overallTotal}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

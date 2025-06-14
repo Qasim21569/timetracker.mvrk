@@ -6,6 +6,7 @@ import UserManagementTable from '@/components/UserManagementTable';
 import AddUserForm from '@/components/AddUserForm';
 import EditUserForm from '@/components/EditUserForm';
 import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 interface User {
   id: string;
@@ -41,11 +42,13 @@ const UserManagementPage = () => {
         
         {currentView === 'table' && (
           <>
-            <div className="flex justify-start">
-              <Button
-                onClick={handleAddUser}
-                className="bg-gray-300 text-black border-2 border-gray-800 hover:bg-gray-400 font-medium"
-              >
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-bold">User Management</h1>
+                <p className="text-muted-foreground">Manage user accounts and permissions</p>
+              </div>
+              <Button onClick={handleAddUser}>
+                <Plus className="h-4 w-4 mr-2" />
                 Add User
               </Button>
             </div>

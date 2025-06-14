@@ -7,33 +7,30 @@ const AdminTabs = () => {
   const location = useLocation();
 
   const tabs = [
-    { name: 'User Management', path: '/users', color: 'bg-blue-200' },
-    { name: 'Project Management', path: '/projects', color: 'bg-blue-200' },
-    { name: 'Reports', path: '/reports', color: 'bg-green-200' },
-    { name: 'Track Time', path: '/', color: 'bg-green-200' },
+    { name: 'User Management', path: '/users' },
+    { name: 'Project Management', path: '/projects' },
+    { name: 'Reports', path: '/reports' },
+    { name: 'Track Time', path: '/' },
   ];
 
-  const getActiveColor = (path: string) => {
-    if (location.pathname === path) {
-      return path === '/reports' || path === '/' ? 'bg-green-400' : 'bg-green-400';
-    }
-    return path === '/reports' || path === '/' ? 'bg-green-200' : 'bg-blue-200';
-  };
-
   return (
-    <div className="flex gap-4 mb-6">
-      {tabs.map((tab) => (
-        <Link
-          key={tab.path}
-          to={tab.path}
-          className={cn(
-            "px-6 py-3 rounded-lg border-2 border-gray-800 font-medium text-gray-800 transition-colors",
-            getActiveColor(tab.path)
-          )}
-        >
-          {tab.name}
-        </Link>
-      ))}
+    <div className="border-b border-border">
+      <nav className="-mb-px flex space-x-8">
+        {tabs.map((tab) => (
+          <Link
+            key={tab.path}
+            to={tab.path}
+            className={cn(
+              "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors",
+              location.pathname === tab.path
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground"
+            )}
+          >
+            {tab.name}
+          </Link>
+        ))}
+      </nav>
     </div>
   );
 };
