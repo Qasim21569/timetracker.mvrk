@@ -5,6 +5,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import DailyTrackTime from '@/components/DailyTrackTime';
 import WeeklyTrackTime from '@/components/WeeklyTrackTime';
+import MonthlyTrackTime from '@/components/MonthlyTrackTime';
 
 type ViewType = 'daily' | 'weekly' | 'monthly';
 
@@ -32,8 +33,7 @@ const TrackTimePage = () => {
       case 'weekly':
         return <WeeklyTrackTime onViewChange={setCurrentView} />;
       case 'monthly':
-        // TODO: Implement Monthly view
-        return <div>Monthly view coming soon...</div>;
+        return <MonthlyTrackTime onViewChange={setCurrentView} />;
       default:
         return <DailyTrackTime onViewChange={setCurrentView} />;
     }
