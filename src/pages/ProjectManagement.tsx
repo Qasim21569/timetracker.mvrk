@@ -6,6 +6,7 @@ import ProjectManagementTable from '@/components/ProjectManagementTable';
 import AddProjectForm from '@/components/AddProjectForm';
 import EditProjectForm from '@/components/EditProjectForm';
 import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -37,27 +38,35 @@ const ProjectManagementPage = () => {
       <div className="space-y-6">
         <AdminTabs />
         
-        {currentView === 'table' && (
-          <>
-            <div className="flex justify-start">
-              <Button
-                onClick={handleAddProject}
-                className="bg-gray-300 text-black border-2 border-gray-800 hover:bg-gray-400 font-medium"
-              >
-                Add Project
-              </Button>
+        <div className="bg-card rounded-xl border border-border shadow-sm">
+          {currentView === 'table' && (
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h1 className="text-3xl font-bold text-foreground">Project Management</h1>
+                  <p className="text-muted-foreground mt-1">Manage projects and assignments</p>
+                </div>
+                <Button onClick={handleAddProject} className="bg-primary hover:bg-primary/90 shadow-sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Project
+                </Button>
+              </div>
+              <ProjectManagementTable onEditProject={handleEditProject} />
             </div>
-            <ProjectManagementTable onEditProject={handleEditProject} />
-          </>
-        )}
+          )}
 
-        {currentView === 'add' && (
-          <AddProjectForm onClose={handleCloseForm} />
-        )}
+          {currentView === 'add' && (
+            <div className="p-6">
+              <AddProjectForm onClose={handleCloseForm} />
+            </div>
+          )}
 
-        {currentView === 'edit' && selectedProject && (
-          <EditProjectForm project={selectedProject} onClose={handleCloseForm} />
-        )}
+          {currentView === 'edit' && selectedProject && (
+            <div className="p-6">
+              <EditProjectForm project={selectedProject} onClose={handleCloseForm} />
+            </div>
+          )}
+        </div>
       </div>
     </MainLayout>
   );

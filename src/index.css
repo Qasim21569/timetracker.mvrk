@@ -3,94 +3,85 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
+/* Enhanced design system with improved colors and consistency */
 
 @layer base {
   :root {
-    --background: 220 13% 98%; /* #F8F9FA */
-    --foreground: 220 13% 13%; /* #1F2937 */
+    --background: 248 250 252; /* Softer light gray #F8FAFC */
+    --foreground: 15 23 42; /* Rich dark slate #0F172A */
 
-    --card: 0 0% 100%; /* #FFFFFF */
-    --card-foreground: 220 13% 13%; /* #1F2937 */
+    --card: 255 255 255; /* Pure white #FFFFFF */
+    --card-foreground: 15 23 42; /* Rich dark slate #0F172A */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 13%;
+    --popover: 255 255 255;
+    --popover-foreground: 15 23 42;
 
-    --primary: 221 83% 53%; /* #3B82F6 */
-    --primary-foreground: 0 0% 100%;
+    --primary: 59 130 246; /* Modern blue #3B82F6 */
+    --primary-foreground: 255 255 255;
 
-    --secondary: 220 9% 46%; /* #6B7280 */
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 100 116 139; /* Refined gray #64748B */
+    --secondary-foreground: 255 255 255;
 
-    --muted: 220 14% 90%; /* #E5E7EB */
-    --muted-foreground: 220 9% 46%; /* #6B7280 - for less important text */
+    --muted: 241 245 249; /* Light background #F1F5F9 */
+    --muted-foreground: 100 116 139; /* Muted text #64748B */
 
-    --accent: 220 14% 93%; /* Lighter accent derived from primary */
-    --accent-foreground: 220 13% 13%;
+    --accent: 226 232 240; /* Subtle accent #E2E8F0 */
+    --accent-foreground: 15 23 42;
 
-    --destructive: 0 84% 60%; /* #EF4444 */
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 239 68 68; /* Modern red #EF4444 */
+    --destructive-foreground: 255 255 255;
 
-    --border: 220 13% 88%; /* #E5E7EB - for subtle separation */
-    --input: 220 13% 88%;
-    --ring: 221 83% 53%; /* Primary color for focus rings */
+    --border: 226 232 240; /* Consistent borders #E2E8F0 */
+    --input: 226 232 240;
+    --ring: 59 130 246; /* Focus ring matches primary */
 
-    --radius: 0.5rem; /* 8px */
+    --radius: 0.75rem; /* Increased border radius for modern look */
 
-    --sidebar-background: 0 0% 100%; /* #FFFFFF */
-    --sidebar-foreground: 220 13% 13%;
-    --sidebar-primary: 221 83% 53%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 93%;
-    --sidebar-accent-foreground: 220 13% 13%;
-    --sidebar-border: 220 13% 88%;
-    --sidebar-ring: 221 83% 53%;
+    --sidebar-background: 255 255 255;
+    --sidebar-foreground: 15 23 42;
+    --sidebar-primary: 59 130 246;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent: 241 245 249;
+    --sidebar-accent-foreground: 15 23 42;
+    --sidebar-border: 226 232 240;
+    --sidebar-ring: 59 130 246;
 
-    --success: 145 77% 40%; /* #10B981 */
-    --warning: 36 93% 53%; /* #F59E0B */
+    --success: 34 197 94; /* Modern green #22C55E */
+    --warning: 245 158 11; /* Modern amber #F59E0B */
+    --info: 14 165 233; /* Sky blue #0EA5E9 */
   }
 
   .dark {
-    /* TODO: Define dark theme colors if needed later */
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-
-    --success: 145 63% 40%;
-    --warning: 36 80% 50%;
+    --background: 2 6 23;
+    --foreground: 248 250 252;
+    --card: 2 6 23;
+    --card-foreground: 248 250 252;
+    --popover: 2 6 23;
+    --popover-foreground: 248 250 252;
+    --primary: 59 130 246;
+    --primary-foreground: 2 6 23;
+    --secondary: 51 65 85;
+    --secondary-foreground: 248 250 252;
+    --muted: 15 23 42;
+    --muted-foreground: 148 163 184;
+    --accent: 15 23 42;
+    --accent-foreground: 248 250 252;
+    --destructive: 239 68 68;
+    --destructive-foreground: 248 250 252;
+    --border: 30 41 59;
+    --input: 30 41 59;
+    --ring: 59 130 246;
+    --sidebar-background: 2 6 23;
+    --sidebar-foreground: 248 250 252;
+    --sidebar-primary: 59 130 246;
+    --sidebar-primary-foreground: 2 6 23;
+    --sidebar-accent: 15 23 42;
+    --sidebar-accent-foreground: 248 250 252;
+    --sidebar-border: 30 41 59;
+    --sidebar-ring: 59 130 246;
+    --success: 34 197 94;
+    --warning: 245 158 11;
+    --info: 14 165 233;
   }
 }
 
@@ -100,13 +91,60 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans antialiased;
     min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold text-foreground;
+    line-height: 1.2;
   }
+
+  h1 { @apply text-3xl md:text-4xl; }
+  h2 { @apply text-2xl md:text-3xl; }
+  h3 { @apply text-xl md:text-2xl; }
+
+  /* Enhanced button and interactive element styles */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm;
+  }
+
+  /* Smooth transitions for better UX */
+  .transition-smooth {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  /* Card enhancements */
+  .card-enhanced {
+    @apply bg-card border border-border rounded-xl shadow-sm hover:shadow-md transition-smooth;
+  }
+
+  /* Focus styles */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
 }
