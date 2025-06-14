@@ -1,32 +1,63 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import AdminTabs from '@/components/layout/AdminTabs';
+import ProjectManagementTable from '@/components/ProjectManagementTable';
+import AddProjectForm from '@/components/AddProjectForm';
+import EditProjectForm from '@/components/EditProjectForm';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+
+interface Project {
+  id: string;
+  name: string;
+  active: boolean;
+  assignedUsers: string[];
+}
 
 const ProjectManagementPage = () => {
+  const [currentView, setCurrentView] = useState<'table' | 'add' | 'edit'>('table');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
+  const handleAddProject = () => {
+    setCurrentView('add');
+  };
+
+  const handleEditProject = (project: Project) => {
+    setSelectedProject(project);
+    setCurrentView('edit');
+  };
+
+  const handleCloseForm = () => {
+    setCurrentView('table');
+    setSelectedProject(null);
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-semibold">Project Management</h2>
-           <Button>
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Project
-          </Button>
-        </div>
-        <Card>
-          <CardHeader>
-            <CardTitle>Project List</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">A table displaying all projects will appear here.</p>
-             <div className="mt-4 border rounded-lg p-8 text-center">
-              <p className="text-lg">Project Table Area</p>
-              <p className="text-sm text-muted-foreground">Coming soon: Manage projects, assign users.</p>
+        <AdminTabs />
+        
+        {currentView === 'table' && (
+          <>
+            <div className="flex justify-start">
+              <Button
+                onClick={handleAddProject}
+                className="bg-gray-300 text-black border-2 border-gray-800 hover:bg-gray-400 font-medium"
+              >
+                Add Project
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+            <ProjectManagementTable onEditProject={handleEditProject} />
+          </>
+        )}
+
+        {currentView === 'add' && (
+          <AddProjectForm onClose={handleCloseForm} />
+        )}
+
+        {currentView === 'edit' && selectedProject && (
+          <EditProjectForm project={selectedProject} onClose={handleCloseForm} />
+        )}
       </div>
     </MainLayout>
   );

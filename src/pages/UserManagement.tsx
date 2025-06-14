@@ -1,32 +1,65 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import AdminTabs from '@/components/layout/AdminTabs';
+import UserManagementTable from '@/components/UserManagementTable';
+import AddUserForm from '@/components/AddUserForm';
+import EditUserForm from '@/components/EditUserForm';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  active: boolean;
+  tier: 'Admin' | 'User';
+  hoursPerDay: number;
+}
 
 const UserManagementPage = () => {
+  const [currentView, setCurrentView] = useState<'table' | 'add' | 'edit'>('table');
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  const handleAddUser = () => {
+    setCurrentView('add');
+  };
+
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    setCurrentView('edit');
+  };
+
+  const handleCloseForm = () => {
+    setCurrentView('table');
+    setSelectedUser(null);
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-semibold">User Management</h2>
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" /> Add User
-          </Button>
-        </div>
-        <Card>
-          <CardHeader>
-            <CardTitle>User List</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">A table displaying all users will appear here.</p>
-             <div className="mt-4 border rounded-lg p-8 text-center">
-              <p className="text-lg">User Table Area</p>
-              <p className="text-sm text-muted-foreground">Coming soon: Manage users, edit roles, view reports.</p>
+        <AdminTabs />
+        
+        {currentView === 'table' && (
+          <>
+            <div className="flex justify-start">
+              <Button
+                onClick={handleAddUser}
+                className="bg-gray-300 text-black border-2 border-gray-800 hover:bg-gray-400 font-medium"
+              >
+                Add User
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+            <UserManagementTable onEditUser={handleEditUser} />
+          </>
+        )}
+
+        {currentView === 'add' && (
+          <AddUserForm onClose={handleCloseForm} />
+        )}
+
+        {currentView === 'edit' && selectedUser && (
+          <EditUserForm user={selectedUser} onClose={handleCloseForm} />
+        )}
       </div>
     </MainLayout>
   );

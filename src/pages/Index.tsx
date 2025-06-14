@@ -1,6 +1,7 @@
 
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
+import AdminTabs from '@/components/layout/AdminTabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clock, Briefcase, CalendarDays } from 'lucide-react';
 
@@ -18,7 +19,6 @@ const StatCard = ({ title, value, icon: IconComponent, description }: { title: s
   </Card>
 );
 
-
 const TrackTimePage = () => {
   // Dummy data for stat cards
   const activeProjects = "3";
@@ -28,6 +28,20 @@ const TrackTimePage = () => {
   return (
     <MainLayout>
       <div className="space-y-6">
+        <AdminTabs />
+        
+        <div className="border-4 border-blue-400 rounded-lg p-8 bg-blue-50">
+          <div className="text-center">
+            <p className="text-lg font-medium mb-4">
+              NOTE: This interface will look identical to what is defined in the User Features section.
+            </p>
+            <p className="text-gray-600">
+              The Track Time interface for admin will be the same as for regular users, 
+              allowing admins to also track their time on projects.
+            </p>
+          </div>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <StatCard title="Active Projects" value={activeProjects} icon={Briefcase} description="Projects you are currently assigned to" />
           <StatCard title="Today's Hours" value={todaysHours} icon={Clock} description="Total hours logged today" />
