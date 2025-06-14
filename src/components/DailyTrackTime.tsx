@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,11 @@ interface ProjectEntry {
   notes: string;
 }
 
-const DailyTrackTime = () => {
+interface DailyTrackTimeProps {
+  onViewChange?: (view: 'daily' | 'weekly' | 'monthly') => void;
+}
+
+const DailyTrackTime = ({ onViewChange }: DailyTrackTimeProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [projects, setProjects] = useState<ProjectEntry[]>([
@@ -125,11 +128,24 @@ const DailyTrackTime = () => {
 
         {/* View tabs */}
         <div className="flex space-x-2">
-          <Button variant="default" className="bg-green-500 hover:bg-green-600">
+          <Button 
+            variant="default" 
+            className="bg-green-500 hover:bg-green-600"
+          >
             Daily
           </Button>
-          <Button variant="outline">Weekly</Button>
-          <Button variant="outline">Monthly</Button>
+          <Button 
+            variant="outline" 
+            onClick={() => onViewChange?.('weekly')}
+          >
+            Weekly
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => onViewChange?.('monthly')}
+          >
+            Monthly
+          </Button>
           <Badge variant="secondary" className="bg-purple-100 text-purple-800 ml-auto">
             Total Daily Hours: {totalHours}
           </Badge>

@@ -1,0 +1,329 @@
+
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { format, startOfWeek, addDays, addWeeks, subWeeks } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+interface ProjectEntry {
+  id: string;
+  name: string;
+  weeklyHours: { [dayIndex: number]: number };
+  weeklyNotes: { [dayIndex: number]: string };
+}
+
+interface NotesDialogState {
+  isOpen: boolean;
+  projectId: string;
+  dayIndex: number;
+  currentNote: string;
+}
+
+const WeeklyTrackTime = () => {
+  const [selectedWeek, setSelectedWeek] = useState<Date>(new Date());
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [notesDialog, setNotesDialog] = useState<NotesDialogState>({
+    isOpen: false,
+    projectId: '',
+    dayIndex: 0,
+    currentNote: ''
+  });
+  
+  const [projects, setProjects] = useState<ProjectEntry[]>([
+    {
+      id: '1',
+      name: 'Internal Meetings',
+      weeklyHours: { 0: 1.5, 1: 2, 2: 1, 3: 3, 4: 2, 5: 0, 6: 0 },
+      weeklyNotes: {
+        0: 'Team standup and planning',
+        1: 'Sprint planning meeting',
+        2: 'Daily standup',
+        3: 'Retrospective and review',
+        4: 'Team building session',
+        5: '',
+        6: ''
+      }
+    },
+    {
+      id: '2',
+      name: 'Project X',
+      weeklyHours: { 0: 1.5, 1: 2, 2: 5, 3: 3, 4: 4, 5: 0, 6: 0 },
+      weeklyNotes: {
+        0: 'Frontend development',
+        1: 'API integration work',
+        2: 'Component development',
+        3: 'Testing and debugging',
+        4: 'Code review and fixes',
+        5: '',
+        6: ''
+      }
+    },
+    {
+      id: '3',
+      name: 'Project Y',
+      weeklyHours: { 0: 5, 1: 4, 2: 2, 3: 2, 4: 2, 5: 0, 6: 0 },
+      weeklyNotes: {
+        0: 'Backend API development',
+        1: 'Database optimization',
+        2: 'Performance improvements',
+        3: 'Security enhancements',
+        4: 'Documentation updates',
+        5: '',
+        6: ''
+      }
+    }
+  ]);
+
+  // Get Monday of the selected week
+  const weekStart = startOfWeek(selectedWeek, { weekStartsOn: 1 });
+  
+  // Generate days of the week starting from Monday
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
+  // Calculate daily totals
+  const dailyTotals = weekDays.map((_, dayIndex) => 
+    projects.reduce((sum, project) => sum + (project.weeklyHours[dayIndex] || 0), 0)
+  );
+
+  // Calculate total weekly hours
+  const totalWeeklyHours = dailyTotals.reduce((sum, dayTotal) => sum + dayTotal, 0);
+
+  // Auto-save functionality
+  const autoSave = (updatedProjects: ProjectEntry[]) => {
+    console.log('Auto-saving weekly data...', updatedProjects);
+    setProjects(updatedProjects);
+  };
+
+  const updateProjectHours = (projectId: string, dayIndex: number, hours: number) => {
+    const updatedProjects = projects.map(project => {
+      if (project.id === projectId) {
+        const updatedHours = { ...project.weeklyHours, [dayIndex]: Math.max(0, hours) };
+        return { ...project, weeklyHours: updatedHours };
+      }
+      return project;
+    });
+    autoSave(updatedProjects);
+
+    // If hours > 0 and no notes exist, open notes dialog
+    if (hours > 0) {
+      const project = projects.find(p => p.id === projectId);
+      if (project && !project.weeklyNotes[dayIndex]) {
+        openNotesDialog(projectId, dayIndex, '');
+      }
+    }
+  };
+
+  const updateProjectNotes = (projectId: string, dayIndex: number, notes: string) => {
+    const updatedProjects = projects.map(project => {
+      if (project.id === projectId) {
+        const updatedNotes = { ...project.weeklyNotes, [dayIndex]: notes };
+        return { ...project, weeklyNotes: updatedNotes };
+      }
+      return project;
+    });
+    autoSave(updatedProjects);
+  };
+
+  const navigateWeek = (direction: 'prev' | 'next') => {
+    setSelectedWeek(direction === 'next' ? addWeeks(selectedWeek, 1) : subWeeks(selectedWeek, 1));
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedWeek(date);
+      setIsCalendarOpen(false);
+    }
+  };
+
+  const openNotesDialog = (projectId: string, dayIndex: number, currentNote: string) => {
+    setNotesDialog({
+      isOpen: true,
+      projectId,
+      dayIndex,
+      currentNote
+    });
+  };
+
+  const closeNotesDialog = () => {
+    setNotesDialog({
+      isOpen: false,
+      projectId: '',
+      dayIndex: 0,
+      currentNote: ''
+    });
+  };
+
+  const saveNotes = () => {
+    updateProjectNotes(notesDialog.projectId, notesDialog.dayIndex, notesDialog.currentNote);
+    closeNotesDialog();
+  };
+
+  const handleCellClick = (projectId: string, dayIndex: number) => {
+    const project = projects.find(p => p.id === projectId);
+    if (project && project.weeklyHours[dayIndex] > 0) {
+      openNotesDialog(projectId, dayIndex, project.weeklyNotes[dayIndex] || '');
+    }
+  };
+
+  const getDayName = (date: Date) => format(date, 'EEE');
+  const getDayDate = (date: Date) => format(date, 'MMM. do');
+
+  return (
+    <div className="space-y-6">
+      {/* Header with view selector and week navigation */}
+      <div className="flex flex-col space-y-4">
+        <div className="flex justify-between items-center">
+          <div className="flex space-x-2">
+            <Button variant="default" className="bg-green-500 hover:bg-green-600">
+              Track Time
+            </Button>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigateWeek('prev')}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="min-w-[250px]">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Week of {format(weekStart, 'MMM. do, yyyy')}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <CalendarComponent
+                  mode="single"
+                  selected={selectedWeek}
+                  onSelect={handleDateSelect}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigateWeek('next')}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* View tabs */}
+        <div className="flex space-x-2">
+          <Button variant="outline">Daily</Button>
+          <Button variant="default" className="bg-green-500 hover:bg-green-600">
+            Weekly
+          </Button>
+          <Button variant="outline">Monthly</Button>
+          <Badge variant="secondary" className="bg-purple-100 text-purple-800 ml-auto">
+            Total Weekly Hours: {totalWeeklyHours}
+          </Badge>
+        </div>
+      </div>
+
+      {/* Weekly time tracking table */}
+      <div className="overflow-auto max-h-[600px] border rounded-lg">
+        <table className="w-full">
+          <thead className="sticky top-0 bg-blue-600 text-white z-10">
+            <tr>
+              <th className="text-left p-4 font-semibold border-r border-blue-500">Project</th>
+              {weekDays.map((day, index) => (
+                <th key={index} className="text-center p-2 font-semibold border-r border-blue-500 min-w-[120px]">
+                  <div className="flex flex-col">
+                    <span>{getDayName(day)}. - {getDayDate(day)}</span>
+                    <span className="text-sm font-normal">Total: {dailyTotals[index]}</span>
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {projects.map((project, projectIndex) => (
+              <tr key={project.id} className={projectIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                <td className="p-4 font-medium border-r border-gray-300 bg-gray-100 sticky left-0 z-5">
+                  {project.name}
+                </td>
+                {weekDays.map((_, dayIndex) => (
+                  <td 
+                    key={dayIndex} 
+                    className="p-2 text-center border-r border-gray-300 cursor-pointer hover:bg-blue-50"
+                    onClick={() => handleCellClick(project.id, dayIndex)}
+                  >
+                    <Input
+                      type="number"
+                      value={project.weeklyHours[dayIndex] || 0}
+                      onChange={(e) => updateProjectHours(project.id, dayIndex, Number(e.target.value))}
+                      className="w-full text-center border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300"
+                      min="0"
+                      step="0.5"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    {project.weeklyHours[dayIndex] > 0 && (
+                      <div className="text-xs text-blue-600 mt-1">
+                        {project.weeklyNotes[dayIndex] ? '📝 Has notes' : '⚠️ Notes required'}
+                      </div>
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Notes Dialog */}
+      <Dialog open={notesDialog.isOpen} onOpenChange={(open) => !open && closeNotesDialog()}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Add Notes - {projects.find(p => p.id === notesDialog.projectId)?.name}
+              <div className="text-sm font-normal text-gray-600">
+                {weekDays[notesDialog.dayIndex] ? format(weekDays[notesDialog.dayIndex], 'EEEE, MMM do') : ''}
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              value={notesDialog.currentNote}
+              onChange={(e) => setNotesDialog({ ...notesDialog, currentNote: e.target.value })}
+              placeholder="Notes are required when hours > 0"
+              className="min-h-[100px] resize-y"
+              maxLength={1000}
+            />
+            <div className="text-xs text-gray-500">
+              {notesDialog.currentNote.length}/1000 characters
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={closeNotesDialog}>
+                Cancel
+              </Button>
+              <Button onClick={saveNotes} className="bg-green-500 hover:bg-green-600">
+                Save Notes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Auto-save indicator */}
+      <div className="text-sm text-gray-500 text-center">
+        Changes are automatically saved
+      </div>
+    </div>
+  );
+};
+
+export default WeeklyTrackTime;
