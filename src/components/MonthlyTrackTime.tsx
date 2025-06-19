@@ -101,16 +101,16 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
               variant="outline"
               size="sm"
               onClick={() => navigateMonth('prev')}
-              className="md:size-default"
+              className="md:size-default flex-shrink-0"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="min-w-[180px] md:min-w-[200px] text-xs md:text-sm">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {format(selectedMonth, 'MMMM yyyy')}
+                <Button variant="outline" className="w-[160px] md:w-[200px] text-xs md:text-sm flex-shrink-0 justify-start">
+                  <Calendar className="mr-2 h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{format(selectedMonth, 'MMMM yyyy')}</span>
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
@@ -127,7 +127,7 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
               variant="outline"
               size="sm"
               onClick={() => navigateMonth('next')}
-              className="md:size-default"
+              className="md:size-default flex-shrink-0"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>

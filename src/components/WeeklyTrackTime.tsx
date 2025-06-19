@@ -225,17 +225,17 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
               variant="outline"
               size="sm"
               onClick={() => navigateWeek('prev')}
-              className="md:size-default"
+              className="md:size-default flex-shrink-0"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="min-w-[200px] md:min-w-[250px] text-xs md:text-sm">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Week of {format(weekStart, 'MMM. do, yyyy')}</span>
-                  <span className="sm:hidden">{format(weekStart, 'MMM. do')}</span>
+                <Button variant="outline" className="w-[200px] md:w-[250px] text-xs md:text-sm flex-shrink-0 justify-start">
+                  <Calendar className="mr-2 h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">Week of {format(weekStart, 'MMM. do, yyyy')}</span>
+                  <span className="sm:hidden truncate">{format(weekStart, 'MMM. do')}</span>
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
@@ -253,7 +253,7 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
               variant="outline"
               size="sm"
               onClick={() => navigateWeek('next')}
-              className="md:size-default"
+              className="md:size-default flex-shrink-0"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -299,7 +299,7 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
             <tbody>
               {projects.map((project, projectIndex) => (
                 <tr key={project.id} className={projectIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                  <td className="p-2 md:p-4 font-medium border-r border-gray-300 bg-gray-100 sticky left-0 z-5 text-xs md:text-sm">
+                  <td className="p-2 md:p-4 font-medium border-r border-gray-300 sticky left-0 z-5 text-xs md:text-sm">
                     <div className="truncate max-w-[120px] md:max-w-none" title={project.name}>
                       {project.name}
                     </div>

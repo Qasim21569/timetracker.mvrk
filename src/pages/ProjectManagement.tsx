@@ -1,22 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Briefcase, Zap, Pause, FolderOpen } from 'lucide-react';
+import { Plus, Briefcase, FolderOpen } from 'lucide-react';
 import ProjectManagementTable from '@/components/ProjectManagementTable';
 import MainLayout from '@/components/layout/MainLayout';
 import AddProjectForm from '@/components/AddProjectForm';
 import EditProjectForm from '@/components/EditProjectForm';
 import AdminTabs from '@/components/layout/AdminTabs';
-
-interface Project {
-  id: string;
-  name: string;
-  active: boolean;
-  assignedUsers: string[];
-}
+import { projectService, userService } from '@/services/dataService';
+import { Project } from '@/data/dummyData';
 
 const ProjectManagementPage = () => {
   const [currentView, setCurrentView] = useState<'table' | 'add' | 'edit'>('table');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [projectStats, setProjectStats] = useState({ active: 0, totalAssignments: 0 });
+
+  // Load project statistics
+  useEffect(() => {
+    const projects = projectService.getAll();
+    const totalAssignments = projects.reduce((sum, project) => sum + project.assignedUserIds.length, 0);
+    setProjectStats({
+      active: projects.length, // All projects are active by default in our system
+      totalAssignments: totalAssignments
+    });
+  }, [refreshTrigger]);
 
   const handleAddProject = () => {
     setCurrentView('add');
@@ -30,6 +37,16 @@ const ProjectManagementPage = () => {
   const handleCloseForm = () => {
     setCurrentView('table');
     setSelectedProject(null);
+  };
+
+  const handleProjectAdded = () => {
+    setRefreshTrigger(prev => prev + 1);
+    setCurrentView('table');
+  };
+
+  const handleProjectUpdated = () => {
+    setRefreshTrigger(prev => prev + 1);
+    setCurrentView('table');
   };
 
   return (
@@ -57,15 +74,11 @@ const ProjectManagementPage = () => {
                   <div className="flex items-center gap-6 mt-4 pt-4 border-t border-slate-200">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                      <span className="text-sm text-slate-600">2 Active Projects</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
-                      <span className="text-sm text-slate-600">1 Inactive Project</span>
+                      <span className="text-sm text-slate-600">{projectStats.active} Active Projects</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <FolderOpen className="w-3 h-3 text-amber-500" />
-                      <span className="text-sm text-slate-600">8 Total Assignments</span>
+                      <span className="text-sm text-slate-600">{projectStats.totalAssignments} Total Assignments</span>
                     </div>
                   </div>
                 </div>
@@ -83,20 +96,30 @@ const ProjectManagementPage = () => {
 
             {/* Enhanced Table Container */}
             <div className="card-enhanced rounded-2xl overflow-hidden shadow-soft">
-              <ProjectManagementTable onEditProject={handleEditProject} />
+              <ProjectManagementTable 
+                onEditProject={handleEditProject} 
+                refreshTrigger={refreshTrigger}
+              />
             </div>
           </>
         )}
 
         {currentView === 'add' && (
           <div className="card-enhanced rounded-2xl p-6 md:p-8">
-            <AddProjectForm onClose={handleCloseForm} />
+            <AddProjectForm 
+              onClose={handleCloseForm}
+              onProjectAdded={handleProjectAdded}
+            />
           </div>
         )}
 
         {currentView === 'edit' && selectedProject && (
           <div className="card-enhanced rounded-2xl p-6 md:p-8">
-            <EditProjectForm project={selectedProject} onClose={handleCloseForm} />
+            <EditProjectForm 
+              project={selectedProject} 
+              onClose={handleCloseForm}
+              onProjectUpdated={handleProjectUpdated}
+            />
           </div>
         )}
       </div>

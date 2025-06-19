@@ -1,54 +1,65 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { projectService, userService } from '@/services/dataService';
+import { User } from '@/data/dummyData';
+import { toast } from '@/hooks/use-toast';
 
 interface AddProjectFormProps {
   onClose: () => void;
+  onProjectAdded?: () => void;
 }
 
-const availableUsers = ['Vuk Stajic', 'Diego Oviedo', 'Pretend Person'];
-
-const AddProjectForm = ({ onClose }: AddProjectFormProps) => {
+const AddProjectForm = ({ onClose, onProjectAdded }: AddProjectFormProps) => {
   const [projectName, setProjectName] = useState('');
-  const [assignedUsers, setAssignedUsers] = useState<string[]>([]);
-  const [selectedAvailableUsers, setSelectedAvailableUsers] = useState<string[]>([]);
-  const [selectedAssignedUsers, setSelectedAssignedUsers] = useState<string[]>([]);
+  const [assignedUserIds, setAssignedUserIds] = useState<string[]>([]);
+  const [selectedAvailableUserIds, setSelectedAvailableUserIds] = useState<string[]>([]);
+  const [selectedAssignedUserIds, setSelectedAssignedUserIds] = useState<string[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load users from localStorage
+  useEffect(() => {
+    const allUsers = userService.getAll();
+    setUsers(allUsers);
+  }, []);
 
   const moveToAssigned = () => {
-    const usersToMove = selectedAvailableUsers.filter(user => !assignedUsers.includes(user));
-    setAssignedUsers([...assignedUsers, ...usersToMove]);
-    setSelectedAvailableUsers([]);
+    const usersToMove = selectedAvailableUserIds.filter(userId => !assignedUserIds.includes(userId));
+    setAssignedUserIds([...assignedUserIds, ...usersToMove]);
+    setSelectedAvailableUserIds([]);
   };
 
   const removeFromAssigned = () => {
-    const usersToRemove = selectedAssignedUsers;
-    setAssignedUsers(assignedUsers.filter(user => !usersToRemove.includes(user)));
-    setSelectedAssignedUsers([]);
+    const usersToRemove = selectedAssignedUserIds;
+    setAssignedUserIds(assignedUserIds.filter(userId => !usersToRemove.includes(userId)));
+    setSelectedAssignedUserIds([]);
   };
 
-  const availableUsersFiltered = availableUsers.filter(user => !assignedUsers.includes(user));
+  const availableUsers = users.filter(user => !assignedUserIds.includes(user.id));
+  const assignedUsers = users.filter(user => assignedUserIds.includes(user.id));
 
-  const handleAvailableUserClick = (user: string) => {
-    setSelectedAvailableUsers(prev => 
-      prev.includes(user) 
-        ? prev.filter(u => u !== user)
-        : [...prev, user]
+  const handleAvailableUserClick = (userId: string) => {
+    setSelectedAvailableUserIds(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
     );
   };
 
-  const handleAssignedUserClick = (user: string) => {
-    setSelectedAssignedUsers(prev => 
-      prev.includes(user) 
-        ? prev.filter(u => u !== user)
-        : [...prev, user]
+  const handleAssignedUserClick = (userId: string) => {
+    setSelectedAssignedUserIds(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validation
@@ -56,18 +67,43 @@ const AddProjectForm = ({ onClose }: AddProjectFormProps) => {
     if (!projectName.trim()) {
       missingFields.push('Project Name');
     }
-    if (assignedUsers.length === 0) {
+    if (assignedUserIds.length === 0) {
       missingFields.push('At least 1 Assigned User');
     }
 
     if (missingFields.length > 0) {
-      alert(`Please fill in the following required fields:\n${missingFields.join('\n')}`);
+      toast({
+        title: "Missing Required Fields",
+        description: `Please fill in the following fields: ${missingFields.join(', ')}`,
+        variant: "destructive"
+      });
       return;
     }
 
-    if (confirm('Are you sure the information is correct, and you want to proceed?')) {
-      console.log('Adding project:', { projectName, assignedUsers });
+    setIsSubmitting(true);
+    try {
+      const newProject = projectService.create({
+        name: projectName.trim(),
+        client: 'Default Client', // Default value since client field exists in data structure
+        assignedUserIds: assignedUserIds
+      });
+
+      toast({
+        title: "Project Added Successfully",
+        description: `${newProject.name} has been created!`
+      });
+      
+      onProjectAdded?.();
       onClose();
+    } catch (error) {
+      console.error('Error adding project:', error);
+      toast({
+        title: "Error Adding Project",
+        description: "There was an error adding the project. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -98,23 +134,31 @@ const AddProjectForm = ({ onClose }: AddProjectFormProps) => {
                 <Label>Available Users</Label>
                 <Card className="min-h-[300px]">
                   <CardContent className="p-4">
-                    {availableUsersFiltered.length === 0 ? (
+                    {availableUsers.length === 0 ? (
                       <p className="text-center text-muted-foreground py-8">
                         All users have been assigned
                       </p>
                     ) : (
                       <div className="space-y-2 max-h-[250px] overflow-y-auto">
-                        {availableUsersFiltered.map((user) => (
+                        {availableUsers.map((user) => (
                           <div 
-                            key={user} 
+                            key={user.id} 
                             className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                              selectedAvailableUsers.includes(user)
+                              selectedAvailableUserIds.includes(user.id)
                                 ? 'bg-primary text-primary-foreground'
                                 : 'bg-muted hover:bg-muted/80'
                             }`}
-                            onClick={() => handleAvailableUserClick(user)}
+                            onClick={() => handleAvailableUserClick(user.id)}
                           >
-                            <span className="font-medium">{user}</span>
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-semibold">
+                                {user.name.substring(0, 2).toUpperCase()}
+                              </div>
+                              <div>
+                                <span className="font-medium">{user.name}</span>
+                                <div className="text-xs text-muted-foreground">{user.email}</div>
+                              </div>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -129,7 +173,7 @@ const AddProjectForm = ({ onClose }: AddProjectFormProps) => {
                   variant="outline"
                   size="sm"
                   onClick={moveToAssigned}
-                  disabled={selectedAvailableUsers.length === 0}
+                  disabled={selectedAvailableUserIds.length === 0}
                   className="w-full"
                 >
                   <ArrowRight className="h-4 w-4" />
@@ -140,7 +184,7 @@ const AddProjectForm = ({ onClose }: AddProjectFormProps) => {
                   variant="outline"
                   size="sm"
                   onClick={removeFromAssigned}
-                  disabled={selectedAssignedUsers.length === 0}
+                  disabled={selectedAssignedUserIds.length === 0}
                   className="w-full"
                 >
                   <ArrowLeft className="h-4 w-4" />
@@ -162,15 +206,23 @@ const AddProjectForm = ({ onClose }: AddProjectFormProps) => {
                       <div className="space-y-2 max-h-[250px] overflow-y-auto">
                         {assignedUsers.map((user) => (
                           <div 
-                            key={user} 
+                            key={user.id} 
                             className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                              selectedAssignedUsers.includes(user)
+                              selectedAssignedUserIds.includes(user.id)
                                 ? 'bg-primary text-primary-foreground'
                                 : 'bg-primary/10 hover:bg-primary/20'
                             }`}
-                            onClick={() => handleAssignedUserClick(user)}
+                            onClick={() => handleAssignedUserClick(user.id)}
                           >
-                            <span className="font-medium">{user}</span>
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white text-sm font-semibold">
+                                {user.name.substring(0, 2).toUpperCase()}
+                              </div>
+                              <div>
+                                <span className="font-medium">{user.name}</span>
+                                <div className="text-xs text-muted-foreground">{user.email}</div>
+                              </div>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -181,10 +233,10 @@ const AddProjectForm = ({ onClose }: AddProjectFormProps) => {
             </div>
 
             <div className="flex gap-4 pt-4">
-              <Button type="submit">
-                Add Project
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Adding...' : 'Add Project'}
               </Button>
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
                 Cancel
               </Button>
             </div>

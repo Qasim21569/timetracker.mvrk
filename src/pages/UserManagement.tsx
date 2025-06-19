@@ -1,24 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import AdminTabs from '@/components/layout/AdminTabs';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, UserCheck, UserX } from 'lucide-react';
+import { Plus, Users } from 'lucide-react';
 import UserManagementTable from '@/components/UserManagementTable';
 import AddUserForm from '@/components/AddUserForm';
 import EditUserForm from '@/components/EditUserForm';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  active: boolean;
-  tier: 'Admin' | 'User';
-  hoursPerDay: number;
-}
+import { userService } from '@/services/dataService';
+import { User } from '@/data/dummyData';
 
 const UserManagementPage = () => {
   const [currentView, setCurrentView] = useState<'table' | 'add' | 'edit'>('table');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [userStats, setUserStats] = useState({ active: 0, total: 0 });
+
+  // Load user statistics
+  useEffect(() => {
+    const users = userService.getAll();
+    const adminUsers = users.filter(user => user.role === 'admin');
+    setUserStats({
+      active: users.length,
+      total: adminUsers.length
+    });
+  }, [refreshTrigger]);
 
   const handleAddUser = () => {
     setCurrentView('add');
@@ -32,6 +37,16 @@ const UserManagementPage = () => {
   const handleCloseForm = () => {
     setCurrentView('table');
     setSelectedUser(null);
+  };
+
+  const handleUserAdded = () => {
+    setRefreshTrigger(prev => prev + 1);
+    setCurrentView('table');
+  };
+
+  const handleUserUpdated = () => {
+    setRefreshTrigger(prev => prev + 1);
+    setCurrentView('table');
   };
 
   return (
@@ -56,11 +71,11 @@ const UserManagementPage = () => {
               <div className="flex items-center gap-6 mt-4 pt-4 border-t border-slate-200">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                  <span className="text-sm text-slate-600">3 Active Users</span>
+                  <span className="text-sm text-slate-600">{userStats.active} Total Users</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
-                  <span className="text-sm text-slate-600">1 Inactive User</span>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm text-slate-600">{userStats.total} Admin Users</span>
                 </div>
               </div>
             </div>
@@ -80,20 +95,30 @@ const UserManagementPage = () => {
           <>
             {/* Enhanced Table Container */}
             <div className="card-enhanced rounded-2xl overflow-hidden shadow-soft">
-              <UserManagementTable onEditUser={handleEditUser} />
+              <UserManagementTable 
+                onEditUser={handleEditUser} 
+                refreshTrigger={refreshTrigger}
+              />
             </div>
           </>
         )}
 
         {currentView === 'add' && (
           <div className="card-enhanced rounded-2xl p-6 md:p-8">
-            <AddUserForm onClose={handleCloseForm} />
+            <AddUserForm 
+              onClose={handleCloseForm}
+              onUserAdded={handleUserAdded}
+            />
           </div>
         )}
 
         {currentView === 'edit' && selectedUser && (
           <div className="card-enhanced rounded-2xl p-6 md:p-8">
-            <EditUserForm user={selectedUser} onClose={handleCloseForm} />
+            <EditUserForm 
+              user={selectedUser} 
+              onClose={handleCloseForm}
+              onUserUpdated={handleUserUpdated}
+            />
           </div>
         )}
       </div>

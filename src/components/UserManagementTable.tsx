@@ -1,43 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, BarChart3, Mail, Clock, Shield, User } from 'lucide-react';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  active: boolean;
-  tier: 'Admin' | 'User';
-  hoursPerDay: number;
-}
-
-const dummyUsers: User[] = [
-  { id: '1', name: 'Diego Oviedo', email: 'diego@mvrk.ca', active: true, tier: 'Admin', hoursPerDay: 8 },
-  { id: '2', name: 'Vuk Stajic', email: 'vuk@mvrk.ca', active: true, tier: 'User', hoursPerDay: 8 },
-  { id: '3', name: 'Pretend Person', email: 'pretend@mvrk.ca', active: false, tier: 'User', hoursPerDay: 6 },
-];
+import { Edit, BarChart3, Mail, Clock, Shield, User, Trash2 } from 'lucide-react';
+import { userService } from '@/services/dataService';
+import { User as UserType } from '@/data/dummyData';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface UserManagementTableProps {
-  onEditUser: (user: User) => void;
+  onEditUser: (user: UserType) => void;
+  refreshTrigger?: number; // To trigger refresh from parent
 }
 
-const UserManagementTable = ({ onEditUser }: UserManagementTableProps) => {
+const UserManagementTable = ({ onEditUser, refreshTrigger }: UserManagementTableProps) => {
   const navigate = useNavigate();
+  const [users, setUsers] = useState<UserType[]>([]);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  // Load users from localStorage
+  useEffect(() => {
+    loadUsers();
+  }, [refreshTrigger]);
+
+  const loadUsers = () => {
+    const allUsers = userService.getAll();
+    setUsers(allUsers);
+  };
 
   // Sort users: Active users first (alphabetically), then Inactive users (alphabetically)
-  const sortedUsers = [...dummyUsers].sort((a, b) => {
-    // First sort by active status (active first)
-    if (a.active !== b.active) {
-      return a.active ? -1 : 1;
+  const sortedUsers = [...users].sort((a, b) => {
+    // First sort by role (admin first), then alphabetically by name
+    if (a.role !== b.role) {
+      return a.role === 'admin' ? -1 : 1;
     }
-    // Then sort alphabetically by name
     return a.name.localeCompare(b.name);
   });
 
-  const handleViewReports = (user: User) => {
+  const handleViewReports = (user: UserType) => {
     // Navigate to reports with specific user filter, all projects, current month
     const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
     const params = new URLSearchParams({
@@ -46,6 +46,22 @@ const UserManagementTable = ({ onEditUser }: UserManagementTableProps) => {
       month: currentMonth
     });
     navigate(`/reports?${params.toString()}`);
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    setIsDeleting(userId);
+    try {
+      const success = userService.delete(userId);
+      if (success) {
+        loadUsers(); // Refresh the list
+      } else {
+        console.error('Failed to delete user');
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    } finally {
+      setIsDeleting(null);
+    }
   };
 
   return (
@@ -118,32 +134,31 @@ const UserManagementTable = ({ onEditUser }: UserManagementTableProps) => {
                 <TableCell>
                   <Badge 
                     className={`
-                      status-indicator text-xs font-medium
-                      ${user.active ? 'status-active' : 'status-inactive'}
+                      status-indicator text-xs font-medium status-active
                     `}
                   >
-                    <div className={`w-1.5 h-1.5 rounded-full ${user.active ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
-                    {user.active ? 'Active' : 'Inactive'}
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                    Active
                   </Badge>
                 </TableCell>
                 <TableCell className="text-xs md:text-sm">
                   <Badge 
-                    variant={user.tier === 'Admin' ? 'default' : 'secondary'} 
+                    variant={user.role === 'admin' ? 'default' : 'secondary'} 
                     className={`
-                      ${user.tier === 'Admin' 
+                      ${user.role === 'admin' 
                         ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0' 
                         : 'bg-slate-100 text-slate-600 border border-slate-200'
                       }
                     `}
                   >
-                    {user.tier === 'Admin' && <Shield className="w-3 h-3 mr-1" />}
-                    {user.tier}
+                    {user.role === 'admin' && <Shield className="w-3 h-3 mr-1" />}
+                    {user.role === 'admin' ? 'Admin' : 'User'}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-xs md:text-sm">
                   <div className="flex items-center gap-2">
                     <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-sm font-medium">
-                      {user.hoursPerDay}h
+                      8h
                     </div>
                   </div>
                 </TableCell>
@@ -167,6 +182,36 @@ const UserManagementTable = ({ onEditUser }: UserManagementTableProps) => {
                     >
                       <BarChart3 className="h-4 w-4 text-slate-600" />
                     </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="h-9 w-9 p-0 hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 hover:shadow-soft transition-all duration-200 rounded-lg"
+                          title="Delete User"
+                          disabled={isDeleting === user.id}
+                        >
+                          <Trash2 className="h-4 w-4 text-slate-600" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete User</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete <strong>{user.name}</strong>? This action cannot be undone and will also remove all their time entries.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => handleDeleteUser(user.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </TableCell>
               </TableRow>

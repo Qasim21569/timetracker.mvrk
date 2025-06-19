@@ -7,27 +7,42 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
+import { userService } from '@/services/dataService';
+import { UserRole } from '@/data/dummyData';
 
 interface AddUserFormProps {
   onClose: () => void;
+  onUserAdded?: () => void; // Callback to refresh parent list
 }
 
-const AddUserForm = ({ onClose }: AddUserFormProps) => {
+const AddUserForm = ({ onClose, onUserAdded }: AddUserFormProps) => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
-    tier: 'User',
-    hoursPerDay: ''
+    tier: 'user' as UserRole,
+    password: 'password' // Default password for new users
   });
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateForm = () => {
     const missingFields = [];
     if (!formData.firstName.trim()) missingFields.push('First Name');
     if (!formData.lastName.trim()) missingFields.push('Last Name');
     if (!formData.email.trim()) missingFields.push('Email');
-    if (!formData.hoursPerDay.trim()) missingFields.push('Hours Per Day');
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email)) {
+      missingFields.push('Valid Email Format');
+    }
+
+    // Check if email already exists
+    const existingUser = userService.getByEmail(formData.email);
+    if (existingUser) {
+      missingFields.push('Unique Email (this email is already in use)');
+    }
     
     return missingFields;
   };
@@ -39,7 +54,7 @@ const AddUserForm = ({ onClose }: AddUserFormProps) => {
     if (missingFields.length > 0) {
       toast({
         title: "Missing Required Fields",
-        description: `Please fill in the following fields: ${missingFields.join(', ')}`,
+        description: `Please fix the following issues: ${missingFields.join(', ')}`,
         variant: "destructive"
       });
       return;
@@ -49,14 +64,35 @@ const AddUserForm = ({ onClose }: AddUserFormProps) => {
     setShowConfirmDialog(true);
   };
 
-  const handleConfirmAdd = () => {
-    console.log('Adding user:', formData);
-    toast({
-      title: "User Added Successfully",
-      description: "Welcome email sent to the user!"
-    });
-    setShowConfirmDialog(false);
-    onClose();
+  const handleConfirmAdd = async () => {
+    setIsSubmitting(true);
+    try {
+      const newUser = userService.create({
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        role: formData.tier,
+        password: formData.password,
+        avatarUrl: `https://i.pravatar.cc/150?u=${formData.email}`
+      });
+
+      toast({
+        title: "User Added Successfully",
+        description: `${newUser.name} has been added to the system!`
+      });
+      
+      setShowConfirmDialog(false);
+      onUserAdded?.(); // Trigger refresh of user list
+      onClose();
+    } catch (error) {
+      console.error('Error adding user:', error);
+      toast({
+        title: "Error Adding User",
+        description: "There was an error adding the user. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -102,14 +138,14 @@ const AddUserForm = ({ onClose }: AddUserFormProps) => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tier">User Tier *</Label>
-                <Select value={formData.tier} onValueChange={(value) => setFormData({...formData, tier: value})}>
+                <Label htmlFor="tier">User Role *</Label>
+                <Select value={formData.tier} onValueChange={(value: UserRole) => setFormData({...formData, tier: value as UserRole})}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="User">User</SelectItem>
-                    <SelectItem value="Admin">Admin</SelectItem>
+                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -117,15 +153,15 @@ const AddUserForm = ({ onClose }: AddUserFormProps) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="hoursPerDay">Hours Per Day *</Label>
+                <Label htmlFor="password">Default Password *</Label>
                 <Input
-                  id="hoursPerDay"
-                  type="number"
-                  step="0.01"
-                  value={formData.hoursPerDay}
-                  onChange={(e) => setFormData({...formData, hoursPerDay: e.target.value})}
-                  placeholder="8.00"
+                  id="password"
+                  type="text"
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  placeholder="password"
                 />
+                <p className="text-xs text-gray-500">User can change this after first login</p>
               </div>
             </div>
 
@@ -146,14 +182,17 @@ const AddUserForm = ({ onClose }: AddUserFormProps) => {
               <br /><br />
               <strong>Name:</strong> {formData.firstName} {formData.lastName}<br />
               <strong>Email:</strong> {formData.email}<br />
-              <strong>Tier:</strong> {formData.tier}<br />
-              <strong>Hours Per Day:</strong> {formData.hoursPerDay}
+              <strong>Role:</strong> {formData.tier === 'admin' ? 'Admin' : 'User'}<br />
+              <strong>Default Password:</strong> {formData.password}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmAdd}>
-              Yes, Add User
+            <AlertDialogAction 
+              onClick={handleConfirmAdd}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Adding...' : 'Yes, Add User'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

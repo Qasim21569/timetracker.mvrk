@@ -1,26 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, Calendar, Edit, MessageSquare } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { format, addDays, subDays } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import { projectService, timeEntryService } from '@/services/dataService';
+import { Project, TimeEntry } from '@/data/dummyData';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProjectEntry {
   id: string;
   name: string;
   hours: number;
   notes: string;
-}
-
-interface NotesDialogState {
-  isOpen: boolean;
-  projectId: string;
-  currentNote: string;
 }
 
 interface DailyTrackTimeProps {
@@ -30,72 +25,214 @@ interface DailyTrackTimeProps {
 const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [notesDialog, setNotesDialog] = useState<NotesDialogState>({
-    isOpen: false,
-    projectId: '',
-    currentNote: ''
-  });
-  const [expandedNotes, setExpandedNotes] = useState<string>('');
+  const textareaRefs = useRef<{ [key: string]: HTMLTextAreaElement | null }>({});
   
-  const [projects, setProjects] = useState<ProjectEntry[]>([
-    {
-      id: '1',
-      name: 'Internal Meetings',
-      hours: 3,
-      notes: 'Team standup and sprint planning session with development updates and blocking issues discussion.'
-    },
-    {
-      id: '2',
-      name: 'Project X',
-      hours: 5.5,
-      notes: 'Frontend development work on new component library and API integration testing.'
-    },
-    {
-      id: '3',
-      name: 'Project Y', 
-      hours: 2,
-      notes: 'Backend optimization and database query improvements for better performance.'
+  // Debouncing and save status states
+  const [savingStatus, setSavingStatus] = useState<{ [key: string]: 'idle' | 'saving' | 'saved' | 'error' }>({});
+  const [lastSaved, setLastSaved] = useState<{ [key: string]: Date }>({});
+  const debounceTimers = useRef<{ [key: string]: NodeJS.Timeout }>({});
+  
+  const [projects, setProjects] = useState<ProjectEntry[]>([]);
+  const { currentUser: user } = useAuth();
+
+  // Load user's projects and time entries
+  useEffect(() => {
+    if (user) {
+      loadProjectsAndTimeEntries();
     }
-  ]);
+  }, [user, selectedDate]);
+
+  const loadProjectsAndTimeEntries = () => {
+    if (!user) return;
+
+    // Get projects assigned to this user
+    const userProjects = projectService.getByUserId(user.id);
+    
+    // Get time entries for this user and date
+    const dateString = format(selectedDate, 'yyyy-MM-dd');
+    const timeEntries = timeEntryService.getByUserIdAndDate(user.id, dateString);
+    
+         // Create project entries with existing time data
+     const projectEntries: ProjectEntry[] = userProjects.map(project => {
+       const existingEntry = timeEntries.find(entry => entry.projectId === project.id);
+       return {
+         id: project.id,
+         name: project.name,
+         hours: existingEntry?.hours || 0,
+         notes: existingEntry?.notes || ''
+       };
+     });
+
+    setProjects(projectEntries);
+  };
 
   // Calculate total hours for the day
   const totalHours = projects.reduce((sum, project) => sum + project.hours, 0);
 
-  // Auto-save functionality
-  const autoSave = (updatedProjects: ProjectEntry[]) => {
-    console.log('Auto-saving daily data...', updatedProjects);
-    setProjects(updatedProjects);
+  // Save hours to localStorage
+  const saveHoursToDatabase = async (projectId: string, hours: number) => {
+    if (!user) return;
+    
+    try {
+      const dateString = format(selectedDate, 'yyyy-MM-dd');
+      const existingProject = projects.find(p => p.id === projectId);
+      
+      // Save to localStorage using timeEntryService
+      timeEntryService.upsert({
+        userId: user.id,
+        projectId: projectId,
+        date: dateString,
+        hours: hours,
+        notes: existingProject?.notes || ''
+      });
+      
+    } catch (error) {
+      console.error('Failed to save hours:', error);
+    }
+  };
+
+  // Save notes to localStorage with debouncing
+  const saveNotesToDatabase = async (projectId: string, notes: string) => {
+    if (!user) return;
+    
+    try {
+      setSavingStatus(prev => ({ ...prev, [projectId]: 'saving' }));
+      
+      // Simulate API delay for visual feedback
+      await new Promise(resolve => setTimeout(resolve, 400));
+      
+      const dateString = format(selectedDate, 'yyyy-MM-dd');
+      const existingProject = projects.find(p => p.id === projectId);
+      
+      // Save to localStorage using timeEntryService
+      timeEntryService.upsert({
+        userId: user.id,
+        projectId: projectId,
+        date: dateString,
+        hours: existingProject?.hours || 0,
+        notes: notes
+      });
+      
+      setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
+      setLastSaved(prev => ({ ...prev, [projectId]: new Date() }));
+      
+      // Auto-hide saved status after 3 seconds
+      setTimeout(() => {
+        setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
+      }, 3000);
+      
+    } catch (error) {
+      console.error('Failed to save notes:', error);
+      setSavingStatus(prev => ({ ...prev, [projectId]: 'error' }));
+      
+      // Auto-hide error status after 5 seconds
+      setTimeout(() => {
+        setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
+      }, 5000);
+    }
+  };
+
+  // Function to resize textarea based on content
+  const resizeTextarea = (textarea: HTMLTextAreaElement) => {
+    textarea.style.height = 'auto';
+    const computed = window.getComputedStyle(textarea);
+    const lineHeight = parseInt(computed.lineHeight) || 20;
+    const paddingTop = parseInt(computed.paddingTop) || 0;
+    const paddingBottom = parseInt(computed.paddingBottom) || 0;
+    const minHeight = lineHeight + paddingTop + paddingBottom;
+    
+    textarea.style.height = Math.max(minHeight, textarea.scrollHeight) + 'px';
+  };
+
+  // Effect to resize textareas on initial render and when projects change
+  useEffect(() => {
+    Object.values(textareaRefs.current).forEach(textarea => {
+      if (textarea) {
+        resizeTextarea(textarea);
+      }
+    });
+  }, [projects]);
+
+  // Cleanup debounce timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(debounceTimers.current).forEach(timer => {
+        if (timer) clearTimeout(timer);
+      });
+    };
+  }, []);
+
+  // Helper function to get save status display
+  const getSaveStatusDisplay = (projectId: string) => {
+    const status = savingStatus[projectId] || 'idle';
+    const lastSaveTime = lastSaved[projectId];
+
+    switch (status) {
+      case 'saving':
+        return { text: 'Saving...', className: 'text-blue-600' };
+      case 'saved':
+        return { 
+          text: `Saved ${lastSaveTime ? format(lastSaveTime, 'HH:mm:ss') : ''}`, 
+          className: 'text-green-600' 
+        };
+      case 'error':
+        return { text: 'Save failed - will retry', className: 'text-red-600' };
+      default:
+        return null;
+    }
   };
 
   const updateProjectHours = (projectId: string, hours: number) => {
-    const updatedProjects = projects.map(project => {
+    const validHours = Math.max(0, hours);
+    
+    // Update UI immediately
+    setProjects(prev => prev.map(project => {
       if (project.id === projectId) {
-        const updatedProject = { ...project, hours: Math.max(0, hours) };
-        
-        // If hours > 0 and no notes exist, open notes dialog
-        if (hours > 0 && !project.notes) {
-          setNotesDialog({
-            isOpen: true,
-            projectId,
-            currentNote: project.notes
-          });
-        }
-        
-        return updatedProject;
+        return { ...project, hours: validHours };
       }
       return project;
-    });
-    autoSave(updatedProjects);
+    }));
+    
+    // Save to localStorage
+    saveHoursToDatabase(projectId, validHours);
   };
 
-  const updateProjectNotes = (projectId: string, notes: string) => {
-    const updatedProjects = projects.map(project => {
+  // Debounced save function - this will call the save after user stops typing
+  const debouncedSaveNotes = useCallback((projectId: string, notes: string) => {
+    // Clear existing timer for this project
+    if (debounceTimers.current[projectId]) {
+      clearTimeout(debounceTimers.current[projectId]);
+    }
+
+    // Set new timer for 800ms debounce
+    debounceTimers.current[projectId] = setTimeout(() => {
+      saveNotesToDatabase(projectId, notes);
+    }, 800);
+  }, [user, selectedDate, projects]);
+
+  // Immediate UI update function (no API call - instant feedback)
+  const updateProjectNotesUI = (projectId: string, notes: string) => {
+    // Limit notes to 1000 characters
+    const limitedNotes = notes.slice(0, 1000);
+    
+    // Update UI immediately for responsive experience
+    setProjects(prev => prev.map(project => {
       if (project.id === projectId) {
-        return { ...project, notes };
+        return { ...project, notes: limitedNotes };
       }
       return project;
-    });
-    autoSave(updatedProjects);
+    }));
+  };
+
+  // Combined function for notes update (UI + debounced API)
+  const updateProjectNotes = (projectId: string, notes: string) => {
+    const limitedNotes = notes.slice(0, 1000);
+    
+    // 1. Update UI immediately (no lag for user)
+    updateProjectNotesUI(projectId, limitedNotes);
+    
+    // 2. Debounced API call (only after user stops typing)
+    debouncedSaveNotes(projectId, limitedNotes);
   };
 
   const navigateDate = (direction: 'prev' | 'next') => {
@@ -109,33 +246,7 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
     }
   };
 
-  const openNotesDialog = (projectId: string) => {
-    const project = projects.find(p => p.id === projectId);
-    if (project) {
-      setNotesDialog({
-        isOpen: true,
-        projectId,
-        currentNote: project.notes
-      });
-    }
-  };
 
-  const closeNotesDialog = () => {
-    setNotesDialog({
-      isOpen: false,
-      projectId: '',
-      currentNote: ''
-    });
-  };
-
-  const saveNotes = () => {
-    updateProjectNotes(notesDialog.projectId, notesDialog.currentNote);
-    closeNotesDialog();
-  };
-
-  const toggleExpandedNotes = (projectId: string) => {
-    setExpandedNotes(expandedNotes === projectId ? '' : projectId);
-  };
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -151,17 +262,17 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
               variant="outline"
               size="sm"
               onClick={() => navigateDate('prev')}
-              className="md:size-default"
+              className="md:size-default flex-shrink-0"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="min-w-[180px] md:min-w-[200px] text-xs md:text-sm">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">{format(selectedDate, 'EEEE, MMM. do, yyyy')}</span>
-                  <span className="sm:hidden">{format(selectedDate, 'MMM. do, yyyy')}</span>
+                <Button variant="outline" className="w-[220px] md:w-[280px] text-xs md:text-sm flex-shrink-0 justify-start">
+                  <Calendar className="mr-2 h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">{format(selectedDate, 'EEEE, MMM. do, yyyy')}</span>
+                  <span className="sm:hidden truncate">{format(selectedDate, 'MMM. do, yyyy')}</span>
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
@@ -178,7 +289,7 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
               variant="outline"
               size="sm"
               onClick={() => navigateDate('next')}
-              className="md:size-default"
+              className="md:size-default flex-shrink-0"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -218,7 +329,7 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
             <tbody>
               {projects.map((project, projectIndex) => (
                 <tr key={project.id} className={projectIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                  <td className="p-2 md:p-4 font-medium border-r border-gray-300 bg-gray-100 text-xs md:text-sm">
+                  <td className="p-2 md:p-4 font-medium border-r border-gray-300 text-xs md:text-sm">
                     <div className="truncate max-w-[120px] md:max-w-none" title={project.name}>
                       {project.name}
                     </div>
@@ -233,24 +344,45 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
                       step="0.5"
                     />
                   </td>
-                  <td className="p-2 md:p-4 border-r border-gray-300">
-                    <div className="flex items-center gap-2">
+                  <td className="p-2 md:p-4 border-r border-gray-300 align-top">
+                    <div className="w-full">
                       <Textarea
+                        ref={(el) => { textareaRefs.current[project.id] = el; }}
                         value={project.notes || ''}
                         onChange={(e) => updateProjectNotes(project.id, e.target.value)}
                         placeholder="Add notes..."
-                        className="min-h-[32px] md:min-h-[40px] resize-none text-xs md:text-sm"
-                        rows={1}
+                        className="w-full resize-none text-xs md:text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 overflow-hidden leading-relaxed"
+                        style={{
+                          minHeight: '32px',
+                          lineHeight: '1.5',
+                          wordWrap: 'break-word',
+                          whiteSpace: 'pre-wrap'
+                        }}
+                        onInput={(e) => {
+                          const target = e.target as HTMLTextAreaElement;
+                          resizeTextarea(target);
+                        }}
+                        onFocus={(e) => {
+                          const target = e.target as HTMLTextAreaElement;
+                          setTimeout(() => resizeTextarea(target), 0);
+                        }}
+                        maxLength={1000}
                       />
-                      <Button
-                        onClick={() => openNotesDialog(project.id)}
-                        variant="outline"
-                        size="sm"
-                        className="whitespace-nowrap text-xs px-2 md:px-3"
-                      >
-                        <MessageSquare className="h-3 w-3 md:h-4 md:w-4" />
-                        <span className="hidden sm:inline ml-1">Edit</span>
-                      </Button>
+                      <div className="flex justify-between items-center mt-1">
+                        <div className="text-xs text-gray-400">
+                          {(project.notes || '').length}/1000
+                        </div>
+                        <div className="text-xs">
+                          {(() => {
+                            const statusDisplay = getSaveStatusDisplay(project.id);
+                            return statusDisplay ? (
+                              <span className={statusDisplay.className}>
+                                {statusDisplay.text}
+                              </span>
+                            ) : null;
+                          })()}
+                        </div>
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -260,37 +392,7 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
         </div>
       </div>
 
-      {/* Notes Dialog */}
-      <Dialog open={notesDialog.isOpen} onOpenChange={closeNotesDialog}>
-        <DialogContent className="sm:max-w-[425px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-base md:text-lg">Edit Notes</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="notes" className="text-sm font-medium">
-                Notes for {projects.find(p => p.id === notesDialog.projectId)?.name}
-              </Label>
-              <Textarea
-                id="notes"
-                value={notesDialog.currentNote}
-                onChange={(e) => setNotesDialog({ ...notesDialog, currentNote: e.target.value })}
-                placeholder="Enter your notes here..."
-                className="min-h-[120px] md:min-h-[150px] text-sm"
-                rows={6}
-              />
-            </div>
-          </div>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
-            <Button variant="outline" onClick={closeNotesDialog} className="order-2 sm:order-1">
-              Cancel
-            </Button>
-            <Button onClick={saveNotes} className="bg-blue-600 hover:bg-blue-700 text-white order-1 sm:order-2">
-              Save Notes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Auto-save indicator */}
       <div className="text-sm text-gray-500 text-center">

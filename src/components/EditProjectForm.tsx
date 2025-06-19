@@ -1,32 +1,33 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-
-interface Project {
-  id: string;
-  name: string;
-  active: boolean;
-  assignedUsers: string[];
-}
+import { projectService, userService } from '@/services/dataService';
+import { Project, User } from '@/data/dummyData';
+import { toast } from '@/hooks/use-toast';
 
 interface EditProjectFormProps {
   project: Project;
   onClose: () => void;
+  onProjectUpdated?: () => void;
 }
 
-const allUsers = ['Vuk Stajic', 'Diego Oviedo', 'Pretend Person'];
-
-const EditProjectForm = ({ project, onClose }: EditProjectFormProps) => {
+const EditProjectForm = ({ project, onClose, onProjectUpdated }: EditProjectFormProps) => {
   const [projectName, setProjectName] = useState(project.name);
-  const [assignedUsers, setAssignedUsers] = useState<string[]>(project.assignedUsers);
-  const [active, setActive] = useState(project.active);
-  const [selectedAvailableUsers, setSelectedAvailableUsers] = useState<string[]>([]);
-  const [selectedAssignedUsers, setSelectedAssignedUsers] = useState<string[]>([]);
+  const [assignedUserIds, setAssignedUserIds] = useState<string[]>(project.assignedUserIds);
+  const [selectedAvailableUserIds, setSelectedAvailableUserIds] = useState<string[]>([]);
+  const [selectedAssignedUserIds, setSelectedAssignedUserIds] = useState<string[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load users from localStorage
+  useEffect(() => {
+    const allUsers = userService.getAll();
+    setUsers(allUsers);
+  }, []);
 
   const moveToAssigned = () => {
     const usersToMove = selectedAvailableUsers.filter(user => !assignedUsers.includes(user));
@@ -58,7 +59,7 @@ const EditProjectForm = ({ project, onClose }: EditProjectFormProps) => {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validation
@@ -66,18 +67,45 @@ const EditProjectForm = ({ project, onClose }: EditProjectFormProps) => {
     if (!projectName.trim()) {
       missingFields.push('Project Name');
     }
-    if (active && assignedUsers.length === 0) {
-      missingFields.push('At least 1 Assigned User (required for active projects)');
+    if (assignedUserIds.length === 0) {
+      missingFields.push('At least 1 Assigned User');
     }
 
     if (missingFields.length > 0) {
-      alert(`Please fill in the following required fields:\n${missingFields.join('\n')}`);
+      toast({
+        title: "Missing Required Fields",
+        description: `Please fill in the following fields: ${missingFields.join(', ')}`,
+        variant: "destructive"
+      });
       return;
     }
 
-    if (confirm('Are you sure the information is correct, and you want to proceed?')) {
-      console.log('Updating project:', { projectName, assignedUsers, active });
-      onClose();
+    setIsSubmitting(true);
+    try {
+      const updatedProject = projectService.update(project.id, {
+        name: projectName.trim(),
+        assignedUserIds: assignedUserIds
+      });
+
+      if (updatedProject) {
+        toast({
+          title: "Project Updated Successfully",
+          description: `${updatedProject.name} has been updated!`
+        });
+        onProjectUpdated?.();
+        onClose();
+      } else {
+        throw new Error('Project not found');
+      }
+    } catch (error) {
+      console.error('Error updating project:', error);
+      toast({
+        title: "Error Updating Project",
+        description: "There was an error updating the project. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
