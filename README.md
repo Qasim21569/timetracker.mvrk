@@ -1,75 +1,55 @@
-# Welcome to your Project
+# Time Tracker
 
-## Project info
+A modern time tracking application with React frontend and Django backend.
 
-## How can I edit this code?
+## Project Structure
 
-There are several ways of editing your application.
+```
+Time Tracker/
+├── frontend/          # React + Vite frontend application
+│   ├── src/          # React source code
+│   ├── public/       # Static assets
+│   └── package.json  # Frontend dependencies
+├── backend/          # Django REST API
+│   └── tracker/      # Django project
+└── vercel.json       # Deployment configuration
+```
 
-**Use your preferred IDE**
+## Development Setup
 
-If you want to work locally using your own IDE, you can clone this repo and push changes.
+### Frontend
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+cd frontend
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Backend
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+cd backend/tracker
+python -m venv env
+source env/bin/activate  # On Windows: .\env\Scripts\Activate.ps1
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
 
-**Use GitHub Codespaces**
+## Features
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- **Frontend**: React + TypeScript + Vite + Tailwind CSS + Shadcn/ui
+- **Backend**: Django + Django REST Framework + Token Authentication
+- **Database**: SQLite (development)
+- **Deployment**: Vercel (frontend) + Django backend API
 
-## What technologies are used for this project?
+## Getting Started
 
-This project is built with:
+1. Clone the repository
+2. Follow the development setup for both frontend and backend
+3. Access the frontend at http://localhost:5173
+4. Access the backend API at http://127.0.0.1:8000/api/
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## License
 
-## How can I deploy this project?
-
-You can deploy this project using your preferred deployment platform.
-
-## Can I connect a custom domain to my project?
-
-Yes, you can!
-
-To connect a domain, follow your deployment platform's instructions for custom domains.
-
-## Deploying to Vercel
-
-This project can be easily deployed to [Vercel](https://vercel.com/):
-
-1. Push your code to GitHub (already done).
-2. Go to https://vercel.com/import and import your repository.
-3. For the framework preset, select 'Vite'.
-4. Set the build command to `npm run build` and the output directory to `dist` (these are the Vite defaults).
-5. Click 'Deploy'.
-
-Vercel will automatically build and deploy your project. Subsequent pushes to your repository will trigger automatic deployments.
+MIT License
