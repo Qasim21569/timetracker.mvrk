@@ -1,75 +1,126 @@
-# Welcome to your Project
+# Time Tracker Application
 
-## Project info
+## Project Overview
 
-## How can I edit this code?
+This is a Time Tracker application with a fully functional React frontend. The backend implementation is currently in development and will be added in future iterations.
 
-There are several ways of editing your application.
+## Current Project Structure
 
-**Use your preferred IDE**
+```
+Time Tracker/
+├── frontend/           # React frontend application (fully functional)
+├── vercel.json        # Vercel deployment configuration
+├── .gitignore         # Git ignore patterns
+└── README.md          # This file
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes.
+## Frontend Features
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+The frontend includes:
 
-Follow these steps:
+- User authentication and management
+- Project management
+- Time tracking (daily, weekly, monthly views)
+- Reports interface
+- Admin dashboard
+- Modern UI with shadcn/ui components
+
+## How to Run the Project
+
+### Prerequisites
+
+- Node.js (v16 or higher)
+- npm or yarn
+
+### Setup Instructions
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Step 1: Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Step 2: Navigate to the project directory
+cd "Time Tracker"
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Step 3: Navigate to the frontend directory
+cd frontend
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Install dependencies
+npm install
+
+# Step 5: Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:5173`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Technologies Used
 
-**Use GitHub Codespaces**
+### Frontend Stack
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- **Vite** - Build tool and development server
+- **React** - Frontend framework
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Utility-first CSS framework
+- **shadcn/ui** - Modern UI component library
+- **React Router** - Navigation
+- **Context API** - State management
 
-## What technologies are used for this project?
+### Deployment
 
-This project is built with:
+- **Vercel** - Frontend hosting and deployment
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Deployment
 
-## How can I deploy this project?
+### Deploy to Vercel
 
-You can deploy this project using your preferred deployment platform.
+1. Push your code to GitHub
+2. Go to [Vercel](https://vercel.com/import) and import your repository
+3. Set the root directory to `frontend`
+4. Framework preset: Vite
+5. Build command: `npm run build`
+6. Output directory: `dist`
+7. Click 'Deploy'
 
-## Can I connect a custom domain to my project?
+### Environment Variables
 
-Yes, you can!
+Currently no environment variables are required for the frontend. When the backend is implemented, API endpoints will be configured.
 
-To connect a domain, follow your deployment platform's instructions for custom domains.
+## Development Status
 
-## Deploying to Vercel
+- ✅ Frontend: Complete and functional
+- 🚧 Backend: To be implemented
+- 🚧 Database integration: Pending backend implementation
+- 🚧 Authentication API: Pending backend implementation
 
-This project can be easily deployed to [Vercel](https://vercel.com/):
+## Next Steps
 
-1. Push your code to GitHub (already done).
-2. Go to https://vercel.com/import and import your repository.
-3. For the framework preset, select 'Vite'.
-4. Set the build command to `npm run build` and the output directory to `dist` (these are the Vite defaults).
-5. Click 'Deploy'.
+1. Implement Django REST API backend
+2. Set up PostgreSQL database
+3. Integrate frontend with backend APIs
+4. Add real authentication
+5. Deploy backend to production
 
-Vercel will automatically build and deploy your project. Subsequent pushes to your repository will trigger automatic deployments.
+## Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Test thoroughly
+4. Submit a pull request
+
+## Git Workflow
+
+When working with this repository:
+
+```sh
+# Check current status
+git status
+
+# Add all changes
+git add .
+
+# Commit with descriptive message
+git commit -m "feat: add new feature or fix: bug description"
+
+# Push to remote repository
+git push origin main
+```
