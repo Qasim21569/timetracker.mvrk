@@ -21,6 +21,7 @@ const EditUserForm = ({ user, onClose, onUserUpdated }: EditUserFormProps) => {
   const [formData, setFormData] = useState({
     firstName: firstName || '',
     lastName: lastName || '',
+    title: user.title || '',
     email: user.email,
     role: user.role,
     password: user.password || 'password'
@@ -71,6 +72,7 @@ const EditUserForm = ({ user, onClose, onUserUpdated }: EditUserFormProps) => {
     try {
       const updatedUser = userService.update(user.id, {
         name: `${formData.firstName} ${formData.lastName}`,
+        title: formData.title.trim() || undefined,
         email: formData.email,
         role: formData.role,
         password: formData.password,
@@ -129,6 +131,18 @@ const EditUserForm = ({ user, onClose, onUserUpdated }: EditUserFormProps) => {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="title">Job Title</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                placeholder="Enter job title (e.g., Senior Developer, Project Manager)"
+                maxLength={60}
+              />
+              <p className="text-xs text-gray-500">Optional - User's job title or position</p>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email *</Label>
@@ -183,6 +197,7 @@ const EditUserForm = ({ user, onClose, onUserUpdated }: EditUserFormProps) => {
               Are you sure the information is correct and you want to proceed with updating this user?
               <br /><br />
               <strong>Name:</strong> {formData.firstName} {formData.lastName}<br />
+              {formData.title && <><strong>Title:</strong> {formData.title}<br /></>}
               <strong>Email:</strong> {formData.email}<br />
               <strong>Role:</strong> {formData.role === 'admin' ? 'Admin' : 'User'}<br />
               <strong>Password:</strong> {formData.password}

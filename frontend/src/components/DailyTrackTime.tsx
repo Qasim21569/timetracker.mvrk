@@ -246,8 +246,6 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
     }
   };
 
-
-
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Header with view selector and date navigation */}
@@ -316,83 +314,73 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
       </div>
 
       {/* Daily time tracking table */}
-      <div className="overflow-x-auto border rounded-lg">
-        <div className="min-w-[600px] md:min-w-0">
-          <table className="w-full">
-            <thead className="sticky top-0 bg-blue-600 text-white z-10">
-              <tr>
-                <th className="text-left p-2 md:p-4 font-semibold text-xs md:text-sm">Project</th>
-                <th className="text-center p-2 md:p-4 font-semibold text-xs md:text-sm">Hours</th>
-                <th className="text-left p-2 md:p-4 font-semibold text-xs md:text-sm">Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {projects.map((project, projectIndex) => (
+      <div className="overflow-auto border rounded-lg">
+        <table className="w-full">
+                  <thead className="sticky top-0 bg-blue-600 text-white z-10">
+          <tr>
+            <th className="text-left p-4 font-semibold w-1/4">Project</th>
+            <th className="text-center p-4 font-semibold w-1/6">Hours</th>
+            <th className="text-left p-4 font-semibold w-7/12">Notes</th>
+          </tr>
+        </thead>
+          <tbody>
+                          {projects.map((project, projectIndex) => (
                 <tr key={project.id} className={projectIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                  <td className="p-2 md:p-4 font-medium border-r border-gray-300 text-xs md:text-sm">
-                    <div className="truncate max-w-[120px] md:max-w-none" title={project.name}>
-                      {project.name}
-                    </div>
-                  </td>
-                  <td className="p-2 md:p-4 text-center border-r border-gray-300">
-                    <Input
+                  <td className="p-4 font-medium w-1/4">{project.name}</td>
+                  <td className="p-4 w-1/6 text-center">
+                    <input
                       type="number"
                       value={project.hours || 0}
                       onChange={(e) => updateProjectHours(project.id, Number(e.target.value))}
-                      className="w-16 md:w-20 text-center border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 text-xs md:text-sm mx-auto"
+                      className="w-20 text-center border rounded px-2 py-1 mx-auto"
                       min="0"
                       step="0.5"
                     />
                   </td>
-                  <td className="p-2 md:p-4 border-r border-gray-300 align-top">
-                    <div className="w-full">
-                      <Textarea
-                        ref={(el) => { textareaRefs.current[project.id] = el; }}
-                        value={project.notes || ''}
-                        onChange={(e) => updateProjectNotes(project.id, e.target.value)}
-                        placeholder="Add notes..."
-                        className="w-full resize-none text-xs md:text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 overflow-hidden leading-relaxed"
-                        style={{
-                          minHeight: '32px',
-                          lineHeight: '1.5',
-                          wordWrap: 'break-word',
-                          whiteSpace: 'pre-wrap'
-                        }}
-                        onInput={(e) => {
-                          const target = e.target as HTMLTextAreaElement;
-                          resizeTextarea(target);
-                        }}
-                        onFocus={(e) => {
-                          const target = e.target as HTMLTextAreaElement;
-                          setTimeout(() => resizeTextarea(target), 0);
-                        }}
-                        maxLength={1000}
-                      />
-                      <div className="flex justify-between items-center mt-1">
-                        <div className="text-xs text-gray-400">
-                          {(project.notes || '').length}/1000
-                        </div>
-                        <div className="text-xs">
-                          {(() => {
-                            const statusDisplay = getSaveStatusDisplay(project.id);
-                            return statusDisplay ? (
-                              <span className={statusDisplay.className}>
-                                {statusDisplay.text}
-                              </span>
-                            ) : null;
-                          })()}
-                        </div>
-                      </div>
-                    </div>
+                  <td className="p-4 w-7/12">
+                    <textarea
+                      ref={(el) => { textareaRefs.current[project.id] = el; }}
+                      value={project.notes || ''}
+                      onChange={(e) => updateProjectNotes(project.id, e.target.value)}
+                      placeholder="Add notes..."
+                      className="w-full resize-none p-2 border rounded bg-gray-50 focus:bg-white focus:border-blue-300 outline-none overflow-y-hidden"
+                      style={{
+                        minHeight: '36px',
+                        lineHeight: '1.4',
+                        wordWrap: 'break-word',
+                        whiteSpace: 'pre-wrap'
+                      }}
+                      onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        resizeTextarea(target);
+                      }}
+                      onFocus={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        setTimeout(() => resizeTextarea(target), 0);
+                      }}
+                      maxLength={1000}
+                    />
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
+          </tbody>
+        </table>
       </div>
 
-
+      {/* Save status messages - moved outside and below the container */}
+      <div className="space-y-1">
+        {projects.map((project) => {
+          const statusDisplay = getSaveStatusDisplay(project.id);
+          return statusDisplay ? (
+            <div key={project.id} className="text-xs flex justify-between items-center">
+              <span className="font-medium text-gray-600">{project.name}:</span>
+              <span className={statusDisplay.className}>
+                {statusDisplay.text}
+              </span>
+            </div>
+          ) : null;
+        })}
+      </div>
 
       {/* Auto-save indicator */}
       <div className="text-sm text-gray-500 text-center">

@@ -15,6 +15,9 @@ interface AddProjectFormProps {
 
 const AddProjectForm = ({ onClose, onProjectAdded }: AddProjectFormProps) => {
   const [projectName, setProjectName] = useState('');
+  const [clientName, setClientName] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [assignedUserIds, setAssignedUserIds] = useState<string[]>([]);
   const [selectedAvailableUserIds, setSelectedAvailableUserIds] = useState<string[]>([]);
   const [selectedAssignedUserIds, setSelectedAssignedUserIds] = useState<string[]>([]);
@@ -66,6 +69,12 @@ const AddProjectForm = ({ onClose, onProjectAdded }: AddProjectFormProps) => {
     if (!projectName.trim()) {
       missingFields.push('Project Name');
     }
+    if (!clientName.trim()) {
+      missingFields.push('Client Name');
+    }
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      missingFields.push('End Date must be after Start Date');
+    }
     if (assignedUserIds.length === 0) {
       missingFields.push('At least 1 Assigned User');
     }
@@ -83,7 +92,9 @@ const AddProjectForm = ({ onClose, onProjectAdded }: AddProjectFormProps) => {
     try {
       const newProject = projectService.create({
         name: projectName.trim(),
-        client: 'Default Client', // Default value since client field exists in data structure
+        client: clientName.trim(),
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
         assignedUserIds: assignedUserIds
       });
 
@@ -114,21 +125,77 @@ const AddProjectForm = ({ onClose, onProjectAdded }: AddProjectFormProps) => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="projectName">
-                Project Name <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="projectName"
-                value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
-                placeholder="Enter project name (max 120 characters)"
-                maxLength={120}
-                required
-              />
+            {/* Basic Project Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="projectName">
+                  Project Name <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="projectName"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  placeholder="Enter project name"
+                  maxLength={120}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  {projectName.length}/120 characters
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="clientName">
+                  Client Name <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="clientName"
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  placeholder="Enter client name"
+                  maxLength={100}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  {clientName.length}/100 characters
+                </p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+            {/* Project Timeline */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startDate">Project Start Date</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Optional - When the project starts
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="endDate">Project End Date</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  min={startDate || undefined}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Optional - Expected project completion date
+                </p>
+              </div>
+            </div>
+
+            {/* User Assignment */}
+            <div className="space-y-4">
+              <Label className="text-base font-semibold">Team Assignment</Label>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
               <div className="space-y-4">
                 <Label>Available Users</Label>
                 <Card className="min-h-[300px]">
@@ -229,6 +296,7 @@ const AddProjectForm = ({ onClose, onProjectAdded }: AddProjectFormProps) => {
                   </CardContent>
                 </Card>
               </div>
+                </div>
             </div>
 
             <div className="flex gap-4 pt-4">

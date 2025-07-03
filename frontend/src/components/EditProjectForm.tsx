@@ -1,10 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { projectService, userService } from '@/services/dataService';
 import { Project, User } from '@/data/dummyData';
 import { toast } from '@/hooks/use-toast';
@@ -15,92 +16,151 @@ interface EditProjectFormProps {
   onProjectUpdated?: () => void;
 }
 
-const EditProjectForm = ({ project, onClose, onProjectUpdated }: EditProjectFormProps) => {
+const EditProjectForm: React.FC<EditProjectFormProps> = ({ 
+  project, 
+  onClose, 
+  onProjectUpdated 
+}) => {
   const [projectName, setProjectName] = useState(project.name);
-  const [assignedUserIds, setAssignedUserIds] = useState<string[]>(project.assignedUserIds);
+  const [clientName, setClientName] = useState(project.client);
+  const [startDate, setStartDate] = useState(project.startDate || '');
+  const [endDate, setEndDate] = useState(project.endDate || '');
+  const [assignedUserIds, setAssignedUserIds] = useState<string[]>([...project.assignedUserIds]);
   const [selectedAvailableUserIds, setSelectedAvailableUserIds] = useState<string[]>([]);
   const [selectedAssignedUserIds, setSelectedAssignedUserIds] = useState<string[]>([]);
+  const [isActive, setIsActive] = useState(true); // Project status
   const [users, setUsers] = useState<User[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load users from localStorage
+  // Store original values for reset functionality
+  const originalValues = {
+    projectName: project.name,
+    clientName: project.client,
+    startDate: project.startDate || '',
+    endDate: project.endDate || '',
+    assignedUserIds: [...project.assignedUserIds],
+    isActive: true
+  };
+
   useEffect(() => {
-    const allUsers = userService.getAll();
-    setUsers(allUsers);
+    try {
+      const allUsers = userService.getAll();
+      setUsers(allUsers);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to load users:', err);
+      setError('Failed to load users. Please refresh the page.');
+    }
   }, []);
 
+  const availableUsers = users.filter(user => !assignedUserIds.includes(user.id));
+  const assignedUsers = users.filter(user => assignedUserIds.includes(user.id));
+
   const moveToAssigned = () => {
-    const usersToMove = selectedAvailableUsers.filter(user => !assignedUsers.includes(user));
-    setAssignedUsers([...assignedUsers, ...usersToMove]);
-    setSelectedAvailableUsers([]);
+    const usersToMove = selectedAvailableUserIds.filter(userId => !assignedUserIds.includes(userId));
+    if (usersToMove.length > 0) {
+      setAssignedUserIds([...assignedUserIds, ...usersToMove]);
+      setSelectedAvailableUserIds([]);
+    }
   };
 
   const removeFromAssigned = () => {
-    const usersToRemove = selectedAssignedUsers;
-    setAssignedUsers(assignedUsers.filter(user => !usersToRemove.includes(user)));
-    setSelectedAssignedUsers([]);
+    if (selectedAssignedUserIds.length > 0) {
+      setAssignedUserIds(assignedUserIds.filter(userId => !selectedAssignedUserIds.includes(userId)));
+      setSelectedAssignedUserIds([]);
+    }
   };
 
-  const availableUsers = allUsers.filter(user => !assignedUsers.includes(user));
-
-  const handleAvailableUserClick = (user: string) => {
-    setSelectedAvailableUsers(prev => 
-      prev.includes(user) 
-        ? prev.filter(u => u !== user)
-        : [...prev, user]
+  const handleAvailableUserClick = (userId: string) => {
+    setSelectedAvailableUserIds(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
     );
   };
 
-  const handleAssignedUserClick = (user: string) => {
-    setSelectedAssignedUsers(prev => 
-      prev.includes(user) 
-        ? prev.filter(u => u !== user)
-        : [...prev, user]
+  const handleAssignedUserClick = (userId: string) => {
+    setSelectedAssignedUserIds(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
     );
+  };
+
+  // Enhanced validation function
+  const validateForm = () => {
+    const errors: string[] = [];
+    
+    if (!projectName.trim()) {
+      errors.push('Project name is required');
+    }
+    
+    if (projectName.trim().length > 120) {
+      errors.push('Project name must be 120 characters or less');
+    }
+    
+    if (!clientName.trim()) {
+      errors.push('Client name is required');
+    }
+    
+    if (clientName.trim().length > 100) {
+      errors.push('Client name must be 100 characters or less');
+    }
+    
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      errors.push('End date must be after start date');
+    }
+    
+    if (assignedUserIds.length === 0) {
+      errors.push('At least one user must be assigned to the project');
+    }
+    
+    return errors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation
-    const missingFields = [];
-    if (!projectName.trim()) {
-      missingFields.push('Project Name');
-    }
-    if (assignedUserIds.length === 0) {
-      missingFields.push('At least 1 Assigned User');
-    }
-
-    if (missingFields.length > 0) {
+    const validationErrors = validateForm();
+    if (validationErrors.length > 0) {
       toast({
-        title: "Missing Required Fields",
-        description: `Please fill in the following fields: ${missingFields.join(', ')}`,
+        title: "Validation Error",
+        description: validationErrors.join(', '),
         variant: "destructive"
       });
       return;
     }
 
     setIsSubmitting(true);
+    setError(null);
+
     try {
       const updatedProject = projectService.update(project.id, {
         name: projectName.trim(),
+        client: clientName.trim(),
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
         assignedUserIds: assignedUserIds
       });
 
       if (updatedProject) {
         toast({
-          title: "Project Updated Successfully",
-          description: `${updatedProject.name} has been updated!`
+          title: "Success",
+          description: `Project "${updatedProject.name}" has been updated successfully!`
         });
         onProjectUpdated?.();
         onClose();
       } else {
         throw new Error('Project not found');
       }
-    } catch (error) {
-      console.error('Error updating project:', error);
+    } catch (err) {
+      console.error('Error updating project:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(`Failed to update project: ${errorMessage}`);
+      
       toast({
-        title: "Error Updating Project",
+        title: "Error",
         description: "There was an error updating the project. Please try again.",
         variant: "destructive"
       });
@@ -109,137 +169,257 @@ const EditProjectForm = ({ project, onClose, onProjectUpdated }: EditProjectForm
     }
   };
 
+  // Reset form to original values
+  const handleReset = () => {
+    setProjectName(originalValues.projectName);
+    setClientName(originalValues.clientName);
+    setStartDate(originalValues.startDate);
+    setEndDate(originalValues.endDate);
+    setAssignedUserIds([...originalValues.assignedUserIds]);
+    setIsActive(originalValues.isActive);
+    setSelectedAvailableUserIds([]);
+    setSelectedAssignedUserIds([]);
+    setError(null);
+    
+    toast({
+      title: "Form Reset",
+      description: "Form has been reset to original values."
+    });
+  };
+
+  // Render user selection card with enhanced display
+  const renderUserCard = (
+    title: string,
+    userList: User[],
+    selectedIds: string[],
+    onUserClick: (userId: string) => void,
+    emptyMessage: string
+  ) => (
+    <div className="space-y-4">
+      <Label className="text-sm font-medium">{title}</Label>
+      <Card className="min-h-[300px]">
+        <CardContent className="p-4">
+          {userList.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8 text-sm">
+              {emptyMessage}
+            </p>
+          ) : (
+            <div className="space-y-2 max-h-[250px] overflow-y-auto">
+              {userList.map((user) => (
+                <div
+                  key={user.id}
+                  className={`
+                    p-3 rounded-lg cursor-pointer transition-all duration-200 border
+                    ${selectedIds.includes(user.id)
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                      : 'bg-card hover:bg-muted border-border hover:shadow-sm'
+                    }
+                  `}
+                  onClick={() => onUserClick(user.id)}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-sm">{user.name}</span>
+                    <span className="text-xs opacity-70 capitalize font-medium">
+                      {user.role}
+                    </span>
+                  </div>
+                  <span className="text-xs opacity-70">{user.email}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  // Error state display
+  if (error) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+        <div className="mt-4 flex gap-2">
+          <Button onClick={() => window.location.reload()}>Reload Page</Button>
+          <Button variant="outline" onClick={onClose}>Close</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle>Edit Project</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Edit Project
+            {isSubmitting && <span className="text-sm text-muted-foreground">(Saving...)</span>}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="projectName">
-                Project Name <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="projectName"
-                value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
-                placeholder="Enter project name (max 120 characters)"
-                maxLength={120}
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
-              <div className="space-y-4">
-                <Label>Available Users</Label>
-                <Card className="min-h-[300px]">
-                  <CardContent className="p-4">
-                    {availableUsers.length === 0 ? (
-                      <p className="text-center text-muted-foreground py-8">
-                        All users have been assigned
-                      </p>
-                    ) : (
-                      <div className="space-y-2 max-h-[250px] overflow-y-auto">
-                        {availableUsers.map((user) => (
-                          <div 
-                            key={user} 
-                            className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                              selectedAvailableUsers.includes(user)
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-muted hover:bg-muted/80'
-                            }`}
-                            onClick={() => handleAvailableUserClick(user)}
-                          >
-                            <span className="font-medium">{user}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="flex flex-col items-center gap-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={moveToAssigned}
-                  disabled={selectedAvailableUsers.length === 0}
-                  className="w-full"
-                >
-                  <ArrowRight className="h-4 w-4" />
-                  Add Selected
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={removeFromAssigned}
-                  disabled={selectedAssignedUsers.length === 0}
-                  className="w-full"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Remove Selected
-                </Button>
-              </div>
-
-              <div className="space-y-4">
-                <Label>
-                  Assigned Users {active && <span className="text-red-500">*</span>}
+            {/* Basic Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="projectName">
+                  Project Name <span className="text-red-500">*</span>
                 </Label>
-                <Card className="min-h-[300px]">
-                  <CardContent className="p-4">
-                    {assignedUsers.length === 0 ? (
-                      <p className="text-center text-muted-foreground py-8">
-                        No users assigned yet
-                      </p>
-                    ) : (
-                      <div className="space-y-2 max-h-[250px] overflow-y-auto">
-                        {assignedUsers.map((user) => (
-                          <div 
-                            key={user} 
-                            className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                              selectedAssignedUsers.includes(user)
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-primary/10 hover:bg-primary/20'
-                            }`}
-                            onClick={() => handleAssignedUserClick(user)}
-                          >
-                            <span className={`font-medium ${user === 'Pretend Person' ? 'italic text-muted-foreground' : ''}`}>
-                              {user}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <Input
+                  id="projectName"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  placeholder="Enter project name"
+                  maxLength={120}
+                  required
+                  disabled={isSubmitting}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {projectName.length}/120 characters
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="clientName">
+                  Client Name <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="clientName"
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  placeholder="Enter client name"
+                  maxLength={100}
+                  required
+                  disabled={isSubmitting}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {clientName.length}/100 characters
+                </p>
               </div>
             </div>
 
+            {/* Project Timeline */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startDate">Project Start Date</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  disabled={isSubmitting}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Optional - When the project starts
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="endDate">Project End Date</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  min={startDate || undefined}
+                  disabled={isSubmitting}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Optional - Expected project completion date
+                </p>
+              </div>
+            </div>
+
+            {/* User Assignment */}
+            <div className="space-y-4">
+              <Label className="text-base font-semibold">User Assignment</Label>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                {renderUserCard(
+                  'Available Users',
+                  availableUsers,
+                  selectedAvailableUserIds,
+                  handleAvailableUserClick,
+                  'All users have been assigned'
+                )}
+
+                <div className="flex flex-col items-center justify-center gap-4 py-8">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={moveToAssigned}
+                    disabled={selectedAvailableUserIds.length === 0 || isSubmitting}
+                    className="w-full"
+                  >
+                    <ArrowRight className="h-4 w-4 mr-2" />
+                    Assign Selected
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={removeFromAssigned}
+                    disabled={selectedAssignedUserIds.length === 0 || isSubmitting}
+                    className="w-full"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Remove Selected
+                  </Button>
+                </div>
+
+                {renderUserCard(
+                  `Assigned Users (${assignedUserIds.length})`,
+                  assignedUsers,
+                  selectedAssignedUserIds,
+                  handleAssignedUserClick,
+                  'No users assigned yet'
+                )}
+              </div>
+            </div>
+
+            {/* Project Status */}
             <div className="flex items-center space-x-4 p-4 bg-muted rounded-lg">
               <Label htmlFor="active-switch" className="text-sm font-medium">
-                Project Active
+                Project Status
               </Label>
               <Switch
                 id="active-switch"
-                checked={active}
-                onCheckedChange={setActive}
+                checked={isActive}
+                onCheckedChange={setIsActive}
+                disabled={isSubmitting}
               />
               <span className="text-sm text-muted-foreground">
-                {active ? 'Active' : 'Inactive'}
+                {isActive ? 'Active' : 'Inactive'}
               </span>
             </div>
 
-            <div className="flex gap-4 pt-4">
-              <Button type="submit">
-                Save Changes
+            {/* Form Actions */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t">
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="sm:order-2"
+              >
+                {isSubmitting ? 'Saving...' : 'Save Changes'}
               </Button>
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="sm:order-3"
+              >
                 Cancel
+              </Button>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                onClick={handleReset}
+                disabled={isSubmitting}
+                className="sm:order-1 sm:mr-auto"
+              >
+                Reset Form
               </Button>
             </div>
           </form>
@@ -249,4 +429,4 @@ const EditProjectForm = ({ project, onClose, onProjectUpdated }: EditProjectForm
   );
 };
 
-export default EditProjectForm;
+export default EditProjectForm; 

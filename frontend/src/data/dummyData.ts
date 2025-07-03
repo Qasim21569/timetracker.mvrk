@@ -1,4 +1,3 @@
-
 export type UserRole = "admin" | "user";
 
 export interface User {
@@ -6,6 +5,7 @@ export interface User {
   email: string;
   password?: string; // In a real app, this would be a hash
   name: string;
+  title?: string; // Job title like "Senior Developer", "Project Manager", etc.
   role: UserRole;
   avatarUrl?: string;
 }
@@ -16,6 +16,7 @@ export const dummyUsers: User[] = [
     email: "admin@example.com",
     password: "password",
     name: "Admin User",
+    title: "System Administrator",
     role: "admin",
     avatarUrl: "https://i.pravatar.cc/150?u=admin@example.com",
   },
@@ -24,6 +25,7 @@ export const dummyUsers: User[] = [
     email: "user@example.com",
     password: "password",
     name: "Regular User",
+    title: "Software Developer",
     role: "user",
     avatarUrl: "https://i.pravatar.cc/150?u=user@example.com",
   },
@@ -33,13 +35,36 @@ export interface Project {
   id: string;
   name: string;
   client: string;
+  startDate?: string; // YYYY-MM-DD format
+  endDate?: string; // YYYY-MM-DD format
   assignedUserIds: string[];
 }
 
 export const dummyProjects: Project[] = [
-  { id: "p1", name: "Website Redesign", client: "Tech Solutions Inc.", assignedUserIds: ["1", "2"] },
-  { id: "p2", name: "Mobile App Dev", client: "Innovate Ltd.", assignedUserIds: ["2"] },
-  { id: "p3", name: "Marketing Campaign", client: "Global Corp", assignedUserIds: ["1"] },
+  { 
+    id: "p1", 
+    name: "Website Redesign", 
+    client: "Tech Solutions Inc.", 
+    startDate: "2025-01-15",
+    endDate: "2025-04-30",
+    assignedUserIds: ["1", "2"] 
+  },
+  { 
+    id: "p2", 
+    name: "Mobile App Dev", 
+    client: "Innovate Ltd.", 
+    startDate: "2025-02-01",
+    endDate: "2025-06-15",
+    assignedUserIds: ["2"] 
+  },
+  { 
+    id: "p3", 
+    name: "Marketing Campaign", 
+    client: "Global Corp", 
+    startDate: "2025-03-01",
+    endDate: "2025-05-31",
+    assignedUserIds: ["1"] 
+  },
 ];
 
 export interface TimeEntry {

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +18,7 @@ const AddUserForm = ({ onClose, onUserAdded }: AddUserFormProps) => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    title: '',
     email: '',
     tier: 'user' as UserRole,
     password: 'password' // Default password for new users
@@ -69,6 +69,7 @@ const AddUserForm = ({ onClose, onUserAdded }: AddUserFormProps) => {
     try {
       const newUser = userService.create({
         name: `${formData.firstName} ${formData.lastName}`,
+        title: formData.title.trim() || undefined,
         email: formData.email,
         role: formData.tier,
         password: formData.password,
@@ -126,6 +127,18 @@ const AddUserForm = ({ onClose, onUserAdded }: AddUserFormProps) => {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="title">Job Title</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                placeholder="Enter job title (e.g., Senior Developer, Project Manager)"
+                maxLength={60}
+              />
+              <p className="text-xs text-gray-500">Optional - User's job title or position</p>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email *</Label>
@@ -181,6 +194,7 @@ const AddUserForm = ({ onClose, onUserAdded }: AddUserFormProps) => {
               Are you sure the information is correct and you want to proceed with adding this user?
               <br /><br />
               <strong>Name:</strong> {formData.firstName} {formData.lastName}<br />
+              {formData.title && <><strong>Title:</strong> {formData.title}<br /></>}
               <strong>Email:</strong> {formData.email}<br />
               <strong>Role:</strong> {formData.tier === 'admin' ? 'Admin' : 'User'}<br />
               <strong>Default Password:</strong> {formData.password}

@@ -123,7 +123,26 @@ const ProjectManagementTable = ({ onEditProject, refreshTrigger }: ProjectManage
                           {project.name}
                         </div>
                         <div className="text-xs text-slate-500">
-                          {assignedUserNames.length} member{assignedUserNames.length !== 1 ? 's' : ''}
+                          {project.client}
+                        </div>
+                        <div className="text-xs text-slate-500 flex items-center gap-2 mt-1">
+                          <span>{assignedUserNames.length} member{assignedUserNames.length !== 1 ? 's' : ''}</span>
+                          {(project.startDate || project.endDate) && (
+                            <span className="text-slate-400">•</span>
+                          )}
+                          {project.startDate && project.endDate ? (
+                            <span className="text-slate-600 font-medium">
+                              {new Date(project.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(project.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                          ) : project.startDate ? (
+                            <span className="text-slate-600 font-medium">
+                              Starts {new Date(project.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                          ) : project.endDate ? (
+                            <span className="text-slate-600 font-medium">
+                              Ends {new Date(project.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                          ) : null}
                         </div>
                       </div>
                     </div>

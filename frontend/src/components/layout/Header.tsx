@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Building, Home, Users, Briefcase, BarChart3, LogOut, Settings, ChevronDown, Clock } from 'lucide-react';
 
 const getPageTitle = (pathname: string): string => {
-  if (pathname === '/') return 'Track Time';
+  if (pathname === '/') return 'Time Tracking';
   if (pathname.startsWith('/users')) return 'User Management';
   if (pathname.startsWith('/projects')) return 'Project Management';
   if (pathname.startsWith('/reports')) return 'Reports';
@@ -28,10 +28,12 @@ const AppHeader = () => {
   if (!currentUser) return null;
 
   const navItems = [
-    { href: '/', icon: Home, label: 'Track Time' },
+    // For regular users, show Time Tracking in dropdown
+    ...(userRole !== 'admin' ? [{ href: '/', icon: Clock, label: 'Time Tracking' }] : []),
+    // For admin users, show admin features (Time Tracking is in admin tabs)
     ...(userRole === 'admin' ? [
-      { href: '/projects', icon: Briefcase, label: 'Projects' },
       { href: '/users', icon: Users, label: 'User Management' },
+      { href: '/projects', icon: Briefcase, label: 'Projects' },
       { href: '/reports', icon: BarChart3, label: 'Reports' },
     ] : [])
   ];
@@ -88,18 +90,20 @@ const AppHeader = () => {
               </div>
               <DropdownMenuSeparator className="bg-slate-200" />
               
-              {/* Mobile Navigation */}
-              <div className="md:hidden">
-                {navItems.map((item) => (
-                  <DropdownMenuItem key={item.label} asChild className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 rounded-lg my-1">
-                    <Link to={item.href} className="flex items-center gap-3 p-2">
-                      <item.icon className="h-4 w-4" />
-                      {item.label}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator className="bg-slate-200 my-2" />
-              </div>
+              {/* Navigation - only show if there are nav items */}
+              {navItems.length > 0 && (
+                <div>
+                  {navItems.map((item) => (
+                    <DropdownMenuItem key={item.label} asChild className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 rounded-lg my-1">
+                      <Link to={item.href} className="flex items-center gap-3 p-2">
+                        <item.icon className="h-4 w-4" />
+                        {item.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator className="bg-slate-200 my-2" />
+                </div>
+              )}
 
               <DropdownMenuItem 
                 onClick={() => navigate('/settings')} 

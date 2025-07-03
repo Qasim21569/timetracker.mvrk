@@ -124,6 +124,9 @@ const UserManagementTable = ({ onEditUser, refreshTrigger }: UserManagementTable
                     </div>
                     <div>
                       <div className="font-semibold text-slate-800">{user.name}</div>
+                      {user.title && (
+                        <div className="text-xs text-slate-500 font-medium">{user.title}</div>
+                      )}
                       <div className="text-xs text-slate-500 md:hidden">{user.email}</div>
                     </div>
                   </div>
