@@ -1,0 +1,357 @@
+{
+  "info": {
+    "name": "Enhanced Time Tracker API",
+    "description": "Complete API testing for Django Time Tracker Backend with full CRUD operations",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "project_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "hour_entry_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "1. User Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\",\n  \"is_admin\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/signup/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "signup", ""]
+            }
+          }
+        },
+        {
+          "name": "2. User Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/login/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "login", ""]
+            }
+          }
+        },
+        {
+          "name": "3. Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "profile", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "4. Create Project",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Token {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Project\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", ""]
+            }
+          }
+        },
+        {
+          "name": "5. List All Projects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/projects/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", ""]
+            }
+          }
+        },
+        {
+          "name": "6. Get Single Project",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/projects/{{project_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "{{project_id}}", ""]
+            }
+          }
+        },
+        {
+          "name": "7. Update Project",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Token {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Project Name\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects/{{project_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "{{project_id}}", ""]
+            }
+          }
+        },
+        {
+          "name": "8. Delete Project",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/projects/{{project_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "{{project_id}}", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hour Entries",
+      "item": [
+        {
+          "name": "9. Create Hour Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Token {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"project\": {{project_id}},\n  \"date\": \"2025-01-07\",\n  \"hours\": 8.0,\n  \"note\": \"Backend development work\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/hours/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hours", ""]
+            }
+          }
+        },
+        {
+          "name": "10. List All Hour Entries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/hours/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hours", ""]
+            }
+          }
+        },
+        {
+          "name": "11. Get Hours by Date",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/hours/?date=2025-01-07",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hours", ""],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2025-01-07"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "12. Get Hours by Date Range",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/hours/?start_date=2025-01-01&end_date=2025-01-07",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hours", ""],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2025-01-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2025-01-07"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "13. Get Single Hour Entry",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/hours/{{hour_entry_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hours", "{{hour_entry_id}}", ""]
+            }
+          }
+        },
+        {
+          "name": "14. Update Hour Entry",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Token {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"project\": {{project_id}},\n  \"date\": \"2025-01-07\",\n  \"hours\": 6.5,\n  \"note\": \"Updated: Backend development and testing\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/hours/{{hour_entry_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hours", "{{hour_entry_id}}", ""]
+            }
+          }
+        },
+        {
+          "name": "15. Delete Hour Entry",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/hours/{{hour_entry_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hours", "{{hour_entry_id}}", ""]
+            }
+          }
+        }
+      ]
+    }
+  ]
+} 
