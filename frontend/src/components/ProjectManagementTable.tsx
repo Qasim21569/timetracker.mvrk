@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, BarChart3, Users, Folder, FileText, Trash2 } from 'lucide-react';
-import { projectService, userService } from '@/services/dataService';
+import { ProjectService, UserService, ApiError } from '@/services/api';
 import { Project, User } from '@/data/dummyData';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
@@ -18,17 +18,34 @@ const ProjectManagementTable = ({ onEditProject, refreshTrigger }: ProjectManage
   const [projects, setProjects] = useState<Project[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load projects and users from localStorage
+  // Load projects and users from API
   useEffect(() => {
     loadProjectsAndUsers();
   }, [refreshTrigger]);
 
-  const loadProjectsAndUsers = () => {
-    const allProjects = projectService.getAll();
-    const allUsers = userService.getAll();
+  const loadProjectsAndUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const [allProjects, allUsers] = await Promise.all([
+        ProjectService.getAllProjects(),
+        UserService.getAllUsers()
+      ]);
     setProjects(allProjects);
     setUsers(allUsers);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      if (error instanceof ApiError) {
+        setError(error.message);
+      } else {
+        setError('Failed to load projects and users');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Sort projects alphabetically
@@ -48,14 +65,15 @@ const ProjectManagementTable = ({ onEditProject, refreshTrigger }: ProjectManage
   const handleDeleteProject = async (projectId: string) => {
     setIsDeleting(projectId);
     try {
-      const success = projectService.delete(projectId);
-      if (success) {
+      await ProjectService.deleteProject(projectId);
         loadProjectsAndUsers(); // Refresh the list
-      } else {
-        console.error('Failed to delete project');
-      }
     } catch (error) {
       console.error('Error deleting project:', error);
+      if (error instanceof ApiError) {
+        setError(error.message);
+      } else {
+        setError('Failed to delete project');
+      }
     } finally {
       setIsDeleting(null);
     }
@@ -101,7 +119,7 @@ const ProjectManagementTable = ({ onEditProject, refreshTrigger }: ProjectManage
           </TableHeader>
           <TableBody>
             {sortedProjects.map((project, index) => {
-              const assignedUserNames = project.assignedUserIds.map(getUserNameById);
+              const assignedUserNames = ((project as any).assigned_user_ids || []).map((userId: any) => getUserNameById(String(userId)));
               
               return (
                 <TableRow 
@@ -127,20 +145,20 @@ const ProjectManagementTable = ({ onEditProject, refreshTrigger }: ProjectManage
                         </div>
                         <div className="text-xs text-slate-500 flex items-center gap-2 mt-1">
                           <span>{assignedUserNames.length} member{assignedUserNames.length !== 1 ? 's' : ''}</span>
-                          {(project.startDate || project.endDate) && (
+                          {((project as any).start_date || (project as any).end_date) && (
                             <span className="text-slate-400">•</span>
                           )}
-                          {project.startDate && project.endDate ? (
+                          {(project as any).start_date && (project as any).end_date ? (
                             <span className="text-slate-600 font-medium">
-                              {new Date(project.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(project.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              {new Date((project as any).start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date((project as any).end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </span>
-                          ) : project.startDate ? (
+                          ) : (project as any).start_date ? (
                             <span className="text-slate-600 font-medium">
-                              Starts {new Date(project.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              Starts {new Date((project as any).start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </span>
-                          ) : project.endDate ? (
+                          ) : (project as any).end_date ? (
                             <span className="text-slate-600 font-medium">
-                              Ends {new Date(project.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              Ends {new Date((project as any).end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </span>
                           ) : null}
                         </div>

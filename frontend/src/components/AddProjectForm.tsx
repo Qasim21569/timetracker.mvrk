@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { projectService, userService } from '@/services/dataService';
+import { ProjectService, UserService, ProjectAssignmentService, ApiError } from '@/services/api';
 import { User } from '@/data/dummyData';
 import { toast } from '@/hooks/use-toast';
 
@@ -23,11 +23,28 @@ const AddProjectForm = ({ onClose, onProjectAdded }: AddProjectFormProps) => {
   const [selectedAssignedUserIds, setSelectedAssignedUserIds] = useState<string[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Load users from localStorage
+  // Load users from API
   useEffect(() => {
-    const allUsers = userService.getAll();
+    const loadUsers = async () => {
+      try {
+        setLoading(true);
+        const allUsers = await UserService.getAllUsers();
     setUsers(allUsers);
+      } catch (error) {
+        console.error('Error loading users:', error);
+        toast({
+          title: "Error Loading Users",
+          description: "Failed to load users. Please refresh the page.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUsers();
   }, []);
 
   const moveToAssigned = () => {
@@ -90,28 +107,45 @@ const AddProjectForm = ({ onClose, onProjectAdded }: AddProjectFormProps) => {
 
     setIsSubmitting(true);
     try {
-      const newProject = projectService.create({
+      // First create the project
+      const newProject = await ProjectService.createProject({
         name: projectName.trim(),
         client: clientName.trim(),
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
-        assignedUserIds: assignedUserIds
+        start_date: startDate || undefined,
+        end_date: endDate || undefined,
       });
+
+      // Then assign users to the project
+      if (assignedUserIds.length > 0) {
+        await ProjectAssignmentService.assignUsersToProject(
+          newProject.id,
+          assignedUserIds.map(id => parseInt(id)),
+          'Initial project team assignment'
+        );
+      }
 
       toast({
         title: "Project Added Successfully",
-        description: `${newProject.name} has been created!`
+        description: `${newProject.name} has been created and team assigned!`
       });
       
       onProjectAdded?.();
       onClose();
     } catch (error) {
       console.error('Error adding project:', error);
+      if (error instanceof ApiError) {
+        toast({
+          title: "Error Adding Project",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
       toast({
         title: "Error Adding Project",
         description: "There was an error adding the project. Please try again.",
         variant: "destructive"
       });
+      }
     } finally {
       setIsSubmitting(false);
     }

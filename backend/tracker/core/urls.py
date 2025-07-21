@@ -15,7 +15,12 @@ from .views import (
     ProjectUnassignUsersView,
     ProjectAssignmentsView,
     UserProjectsView,
-    AssignmentStatsView
+    AssignmentStatsView,
+    # Cycle 3: Advanced Time Tracking & Reporting views
+    DailySummaryView,
+    WeeklySummaryView,
+    MonthlySummaryView,
+    ProjectTimeReportView
 )
 
 urlpatterns = [
@@ -47,4 +52,10 @@ urlpatterns = [
     
     # Assignment statistics (admin only)
     path('assignments/stats/', AssignmentStatsView.as_view(), name='assignment-stats'),
+    
+    # Cycle 3: Advanced Time Tracking & Reporting endpoints
+    path('time/daily/', DailySummaryView.as_view(), name='daily-summary'),
+    path('time/weekly/', WeeklySummaryView.as_view(), name='weekly-summary'),
+    path('time/monthly/', MonthlySummaryView.as_view(), name='monthly-summary'),
+    path('projects/<int:project_id>/time-report/', ProjectTimeReportView.as_view(), name='project-time-report'),
 ] 

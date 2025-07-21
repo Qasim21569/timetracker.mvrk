@@ -7,6 +7,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
 import DailyTrackTime from './DailyTrackTime';
+import { TimeTrackingService, ProjectService, ApiError } from '@/services/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface MonthlyTrackTimeProps {
   onViewChange: (view: 'daily' | 'weekly' | 'monthly') => void;
@@ -22,13 +24,54 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [selectedDayForModal, setSelectedDayForModal] = useState<Date | null>(null);
   const [isDayModalOpen, setIsDayModalOpen] = useState(false);
+  const [monthlyTimeData, setMonthlyTimeData] = useState<{ [date: string]: number }>({});
+  const [loading, setLoading] = useState(true);
+  const { currentUser: user } = useAuth();
 
-  // Mock data for daily hours - in real app this would come from API/database
+  // Load monthly time data from API
+  useEffect(() => {
+    if (user) {
+      loadMonthlyData();
+    }
+  }, [user, selectedMonth]);
+
+  const loadMonthlyData = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      
+      const monthStart = startOfMonth(selectedMonth);
+      const monthEnd = endOfMonth(selectedMonth);
+
+      // Get time entries for the month
+      const timeEntries = await TimeTrackingService.getAllTimeEntries({
+        start_date: format(monthStart, 'yyyy-MM-dd'),
+        end_date: format(monthEnd, 'yyyy-MM-dd')
+      });
+
+      // Filter time entries for current user and aggregate by date
+      const dailyHours: { [date: string]: number } = {};
+      
+      timeEntries.forEach(entry => {
+        if ((entry as any).user === parseInt(user.id)) {
+          const dateKey = (entry as any).date;
+          dailyHours[dateKey] = (dailyHours[dateKey] || 0) + entry.hours;
+        }
+      });
+
+      setMonthlyTimeData(dailyHours);
+    } catch (error) {
+      console.error('Error loading monthly data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get hours for a specific date
   const getDayHours = (date: Date): number => {
-    // Generate mock hours based on date (for demo purposes)
-    const dayOfMonth = date.getDate();
-    const mockHours = [0, 8, 7.5, 6, 8.5, 0, 0, 5, 8, 7, 6.5, 8, 0, 0];
-    return mockHours[dayOfMonth % mockHours.length] || 0;
+    const dateKey = format(date, 'yyyy-MM-dd');
+    return monthlyTimeData[dateKey] || 0;
   };
 
   // Calculate total hours for the month
@@ -154,7 +197,12 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
       </div>
 
       {/* Monthly Calendar */}
-      <div className="border rounded-lg overflow-hidden bg-white">
+      {loading ? (
+        <div className="flex justify-center items-center py-8 border rounded-lg">
+          <div className="text-lg text-gray-600">Loading monthly data...</div>
+        </div>
+      ) : (
+        <div className="border rounded-lg overflow-hidden bg-white">
         {/* Calendar Header - Days of week */}
         <div className="grid grid-cols-7 bg-blue-600 text-white">
           {weekDays.map(day => (
@@ -200,6 +248,7 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
           })}
         </div>
       </div>
+      )}
 
       {/* Day Detail Modal */}
       <Dialog open={isDayModalOpen} onOpenChange={(open) => !open && closeDayModal()}>
@@ -252,26 +301,60 @@ interface DailyTrackTimeEmbeddedProps {
 }
 
 const DailyTrackTimeEmbedded: React.FC<DailyTrackTimeEmbeddedProps> = ({ selectedDate }) => {
-  const [projects, setProjects] = useState([
-    {
-      id: '1',
-      name: 'Internal Meetings',
-      hours: 3,
-      notes: 'Team standup and sprint planning session with development updates and blocking issues discussion.'
-    },
-    {
-      id: '2',
-      name: 'Project X',
-      hours: 5.5,
-      notes: 'Frontend development work on new component library and API integration testing.'
-    },
-    {
-      id: '3',
-      name: 'Project Y', 
-      hours: 2,
-      notes: 'Backend optimization and database query improvements for better performance.'
+  const [projects, setProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { currentUser: user } = useAuth();
+
+  // Load user's projects and time entries for the selected date
+  useEffect(() => {
+    if (user) {
+      loadDailyData();
     }
-  ]);
+  }, [user, selectedDate]);
+
+  const loadDailyData = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      
+      // Get all projects assigned to current user
+      const allProjects = await ProjectService.getAllProjects();
+      const userProjects = allProjects.filter(project => 
+        (project as any).assigned_user_ids?.includes(parseInt(user.id))
+      );
+
+      // Get time entries for this specific date
+      const dateString = format(selectedDate, 'yyyy-MM-dd');
+      const timeEntries = await TimeTrackingService.getAllTimeEntries({
+        date: dateString
+      });
+
+      // Filter time entries for current user
+      const userTimeEntries = timeEntries.filter(entry => 
+        (entry as any).user === parseInt(user.id)
+      );
+
+      // Create project entries with existing time data
+      const projectEntries = userProjects.map(project => {
+        const existingEntry = userTimeEntries.find(entry => 
+          String((entry as any).project) === String(project.id)
+        );
+        return {
+          id: String(project.id),
+          name: project.name,
+          hours: existingEntry?.hours || 0,
+          notes: (existingEntry as any)?.note || ''
+        };
+      });
+
+      setProjects(projectEntries);
+    } catch (error) {
+      console.error('Error loading daily data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Calculate total hours for the day
   const totalHours = projects.reduce((sum, project) => sum + project.hours, 0);
@@ -302,7 +385,12 @@ const DailyTrackTimeEmbedded: React.FC<DailyTrackTimeEmbeddedProps> = ({ selecte
       </div>
 
       {/* Daily time tracking table */}
-      <div className="overflow-auto max-h-[400px] border rounded-lg">
+      {loading ? (
+        <div className="flex justify-center items-center py-8 border rounded-lg">
+          <div className="text-gray-600">Loading daily data...</div>
+        </div>
+      ) : (
+        <div className="overflow-auto max-h-[400px] border rounded-lg">
         <table className="w-full">
           <thead className="sticky top-0 bg-blue-600 text-white z-10">
             <tr>
@@ -335,6 +423,7 @@ const DailyTrackTimeEmbedded: React.FC<DailyTrackTimeEmbeddedProps> = ({ selecte
           </tbody>
         </table>
       </div>
+      )}
 
       {/* Auto-save indicator */}
       <div className="text-sm text-gray-500 text-center">

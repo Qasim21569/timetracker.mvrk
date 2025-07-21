@@ -4,9 +4,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, BarChart3, Mail, Clock, Shield, User, Trash2 } from 'lucide-react';
-import { userService } from '@/services/dataService';
+import { UserService, ApiError } from '@/services/api';
 import { User as UserType } from '@/data/dummyData';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { toast } from '@/hooks/use-toast';
 
 interface UserManagementTableProps {
   onEditUser: (user: UserType) => void;
@@ -17,15 +18,31 @@ const UserManagementTable = ({ onEditUser, refreshTrigger }: UserManagementTable
   const navigate = useNavigate();
   const [users, setUsers] = useState<UserType[]>([]);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load users from localStorage
+  // Load users from API
   useEffect(() => {
     loadUsers();
   }, [refreshTrigger]);
 
-  const loadUsers = () => {
-    const allUsers = userService.getAll();
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      // Only fetch active users for the management table
+      const allUsers = await UserService.getAllUsers({ is_active: true });
     setUsers(allUsers);
+    } catch (error) {
+      console.error('Error loading users:', error);
+      if (error instanceof ApiError) {
+        setError(error.message);
+      } else {
+        setError('Failed to load users');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Sort users: Active users first (alphabetically), then Inactive users (alphabetically)
@@ -49,20 +66,65 @@ const UserManagementTable = ({ onEditUser, refreshTrigger }: UserManagementTable
   };
 
   const handleDeleteUser = async (userId: string) => {
+    const userToDelete = users.find(u => u.id === userId);
     setIsDeleting(userId);
     try {
-      const success = userService.delete(userId);
-      if (success) {
+      await UserService.deactivateUser(userId);
+      
+      // Show success toast
+      toast({
+        title: "User Deleted Successfully",
+        description: `${userToDelete?.name || 'User'} has been removed from the system.`
+      });
+      
         loadUsers(); // Refresh the list
-      } else {
-        console.error('Failed to delete user');
-      }
     } catch (error) {
       console.error('Error deleting user:', error);
+      let errorMessage = 'Failed to delete user';
+      
+      if (error instanceof ApiError) {
+        errorMessage = error.message;
+      }
+      
+      toast({
+        title: "Error Deleting User",
+        description: errorMessage,
+        variant: "destructive"
+      });
+      
+      setError(errorMessage);
     } finally {
       setIsDeleting(null);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="table-enhanced">
+        <div className="flex items-center justify-center p-8">
+          <div className="text-slate-600">Loading users...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="table-enhanced">
+        <div className="flex items-center justify-center p-8">
+          <div className="text-red-600">Error: {error}</div>
+          <Button 
+            onClick={() => loadUsers()} 
+            className="ml-4"
+            variant="outline"
+            size="sm"
+          >
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="table-enhanced">
@@ -115,10 +177,7 @@ const UserManagementTable = ({ onEditUser, refreshTrigger }: UserManagementTable
                   <div className="flex items-center gap-3">
                     <div className={`
                       w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm
-                      ${user.active 
-                        ? 'bg-gradient-to-br from-blue-500 to-purple-500' 
-                        : 'bg-gradient-to-br from-slate-400 to-slate-500'
-                      }
+                      bg-gradient-to-br from-blue-500 to-purple-500
                     `}>
                       {user.name.substring(0, 2).toUpperCase()}
                     </div>

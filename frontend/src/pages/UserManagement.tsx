@@ -6,7 +6,7 @@ import { Plus, Users } from 'lucide-react';
 import UserManagementTable from '@/components/UserManagementTable';
 import AddUserForm from '@/components/AddUserForm';
 import EditUserForm from '@/components/EditUserForm';
-import { userService } from '@/services/dataService';
+import { UserService, ApiError } from '@/services/api';
 import { User } from '@/data/dummyData';
 
 const UserManagementPage = () => {
@@ -17,12 +17,23 @@ const UserManagementPage = () => {
 
   // Load user statistics
   useEffect(() => {
-    const users = userService.getAll();
+    const loadUserStats = async () => {
+      try {
+        // Only count active users
+        const users = await UserService.getAllUsers({ is_active: true });
     const adminUsers = users.filter(user => user.role === 'admin');
     setUserStats({
       active: users.length,
       total: adminUsers.length
     });
+      } catch (error) {
+        console.error('Error loading user stats:', error);
+        // Set default stats on error
+        setUserStats({ active: 0, total: 0 });
+      }
+    };
+
+    loadUserStats();
   }, [refreshTrigger]);
 
   const handleAddUser = () => {

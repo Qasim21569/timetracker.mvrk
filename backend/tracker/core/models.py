@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 # Create your models here.
 
 class User(AbstractUser):
+    email = models.EmailField(unique=True, help_text="Email address - must be unique")
     is_admin = models.BooleanField(default=False)
 
 class Project(models.Model):

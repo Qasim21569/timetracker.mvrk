@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
-import { userService } from '@/services/dataService';
+import { UserService, ApiError } from '@/services/api';
 import { UserRole } from '@/data/dummyData';
 
 interface AddUserFormProps {
@@ -18,10 +18,11 @@ const AddUserForm = ({ onClose, onUserAdded }: AddUserFormProps) => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    title: '',
+    username: '',
     email: '',
-    tier: 'user' as UserRole,
-    password: 'password' // Default password for new users
+    role: 'user' as 'user' | 'admin',
+    password: 'defaultpass123', // Default password for new users
+    password_confirm: 'defaultpass123' // Confirmation field
   });
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,7 +31,10 @@ const AddUserForm = ({ onClose, onUserAdded }: AddUserFormProps) => {
     const missingFields = [];
     if (!formData.firstName.trim()) missingFields.push('First Name');
     if (!formData.lastName.trim()) missingFields.push('Last Name');
+    if (!formData.username.trim()) missingFields.push('Username');
     if (!formData.email.trim()) missingFields.push('Email');
+    if (!formData.password.trim()) missingFields.push('Password');
+    if (!formData.password_confirm.trim()) missingFields.push('Password Confirmation');
     
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -38,10 +42,9 @@ const AddUserForm = ({ onClose, onUserAdded }: AddUserFormProps) => {
       missingFields.push('Valid Email Format');
     }
 
-    // Check if email already exists
-    const existingUser = userService.getByEmail(formData.email);
-    if (existingUser) {
-      missingFields.push('Unique Email (this email is already in use)');
+    // Password confirmation validation
+    if (formData.password !== formData.password_confirm) {
+      missingFields.push('Passwords Must Match');
     }
     
     return missingFields;
@@ -67,18 +70,19 @@ const AddUserForm = ({ onClose, onUserAdded }: AddUserFormProps) => {
   const handleConfirmAdd = async () => {
     setIsSubmitting(true);
     try {
-      const newUser = userService.create({
-        name: `${formData.firstName} ${formData.lastName}`,
-        title: formData.title.trim() || undefined,
+      const newUser = await UserService.createUser({
+        username: formData.username,
         email: formData.email,
-        role: formData.tier,
         password: formData.password,
-        avatarUrl: `https://i.pravatar.cc/150?u=${formData.email}`
+        password_confirm: formData.password_confirm,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        is_admin: formData.role === 'admin'
       });
 
       toast({
         title: "User Added Successfully",
-        description: `${newUser.name} has been added to the system!`
+        description: `${newUser.name || `${formData.firstName} ${formData.lastName}`} has been added to the system!`
       });
       
       setShowConfirmDialog(false);
@@ -86,9 +90,15 @@ const AddUserForm = ({ onClose, onUserAdded }: AddUserFormProps) => {
       onClose();
     } catch (error) {
       console.error('Error adding user:', error);
+      let errorMessage = "There was an error adding the user. Please try again.";
+      
+      if (error instanceof ApiError) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error Adding User",
-        description: "There was an error adding the user. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -128,15 +138,15 @@ const AddUserForm = ({ onClose, onUserAdded }: AddUserFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="title">Job Title</Label>
+              <Label htmlFor="username">Username *</Label>
               <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData({...formData, title: e.target.value})}
-                placeholder="Enter job title (e.g., Senior Developer, Project Manager)"
+                id="username"
+                value={formData.username}
+                onChange={(e) => setFormData({...formData, username: e.target.value})}
+                placeholder="Enter username"
                 maxLength={60}
               />
-              <p className="text-xs text-gray-500">Optional - User's job title or position</p>
+              <p className="text-xs text-gray-500">Unique username for login</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -151,8 +161,8 @@ const AddUserForm = ({ onClose, onUserAdded }: AddUserFormProps) => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tier">User Role *</Label>
-                <Select value={formData.tier} onValueChange={(value: UserRole) => setFormData({...formData, tier: value as UserRole})}>
+                <Label htmlFor="role">User Role *</Label>
+                <Select value={formData.role} onValueChange={(value: 'user' | 'admin') => setFormData({...formData, role: value})}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -166,20 +176,32 @@ const AddUserForm = ({ onClose, onUserAdded }: AddUserFormProps) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="password">Default Password *</Label>
+                <Label htmlFor="password">Password *</Label>
                 <Input
                   id="password"
-                  type="text"
+                  type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  placeholder="password"
+                  placeholder="Enter password"
                 />
-                <p className="text-xs text-gray-500">User can change this after first login</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password_confirm">Confirm Password *</Label>
+                <Input
+                  id="password_confirm"
+                  type="password"
+                  value={formData.password_confirm}
+                  onChange={(e) => setFormData({...formData, password_confirm: e.target.value})}
+                  placeholder="Confirm password"
+                />
               </div>
             </div>
+            <p className="text-xs text-gray-500 -mt-4">User can change password after first login</p>
 
             <div className="flex gap-4 pt-4">
-              <Button type="submit">Add User</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Adding User...' : 'Add User'}
+              </Button>
               <Button type="button" onClick={onClose} variant="outline">Cancel</Button>
             </div>
           </form>
@@ -194,19 +216,16 @@ const AddUserForm = ({ onClose, onUserAdded }: AddUserFormProps) => {
               Are you sure the information is correct and you want to proceed with adding this user?
               <br /><br />
               <strong>Name:</strong> {formData.firstName} {formData.lastName}<br />
-              {formData.title && <><strong>Title:</strong> {formData.title}<br /></>}
+              <strong>Username:</strong> {formData.username}<br />
               <strong>Email:</strong> {formData.email}<br />
-              <strong>Role:</strong> {formData.tier === 'admin' ? 'Admin' : 'User'}<br />
-              <strong>Default Password:</strong> {formData.password}
+              <strong>Role:</strong> {formData.role === 'admin' ? 'Admin' : 'User'}<br />
+              <strong>Password:</strong> {formData.password}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleConfirmAdd}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Adding...' : 'Yes, Add User'}
+            <AlertDialogCancel onClick={() => setShowConfirmDialog(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAdd} disabled={isSubmitting}>
+              {isSubmitting ? 'Adding...' : 'Confirm Add User'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

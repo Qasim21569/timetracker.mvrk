@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # Backend Django API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: timetracker-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/tracker:/app
+      - backend_static:/app/staticfiles
+    environment:
+      - DEBUG=1
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+      - CORS_ALLOWED_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
+    networks:
+      - timetracker-network
+    command: python manage.py runserver 0.0.0.0:8000
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  # PostgreSQL Database (for production-like setup)
+  db:
+    image: postgres:15-alpine
+    container_name: timetracker-db
+    environment:
+      POSTGRES_DB: timetracker
+      POSTGRES_USER: timetracker_user
+      POSTGRES_PASSWORD: timetracker_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - timetracker-network
+    restart: unless-stopped
+
+  # Frontend (React) - Optional for full-stack development
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: timetracker-frontend
+  #   ports:
+  #     - "8080:8080"
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   environment:
+  #     - CHOKIDAR_USEPOLLING=true
+  #   networks:
+  #     - timetracker-network
+  #   depends_on:
+  #     - backend
+  #   restart: unless-stopped
+
+volumes:
+  postgres_data:
+  backend_static:
+
+networks:
+  timetracker-network:
+    driver: bridge 

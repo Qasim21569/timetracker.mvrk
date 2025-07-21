@@ -8,6 +8,8 @@ import { format, startOfWeek, addDays, addWeeks, subWeeks } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { TimeTrackingService, ProjectService, ApiError } from '@/services/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProjectEntry {
   id: string;
@@ -39,50 +41,80 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
     isForced: false
   });
   
-  const [projects, setProjects] = useState<ProjectEntry[]>([
-    {
-      id: '1',
-      name: 'Internal Meetings',
-      weeklyHours: { 0: 1.5, 1: 2, 2: 1, 3: 3, 4: 2, 5: 0, 6: 0 },
-      weeklyNotes: {
-        0: 'Team standup and planning',
-        1: 'Sprint planning meeting',
-        2: 'Daily standup',
-        3: 'Retrospective and review',
-        4: 'Team building session',
-        5: '',
-        6: ''
-      }
-    },
-    {
-      id: '2',
-      name: 'Project X',
-      weeklyHours: { 0: 1.5, 1: 2, 2: 5, 3: 3, 4: 4, 5: 0, 6: 0 },
-      weeklyNotes: {
-        0: 'Frontend development',
-        1: 'API integration work',
-        2: 'Component development',
-        3: 'Testing and debugging',
-        4: 'Code review and fixes',
-        5: '',
-        6: ''
-      }
-    },
-    {
-      id: '3',
-      name: 'Project Y',
-      weeklyHours: { 0: 5, 1: 4, 2: 2, 3: 2, 4: 2, 5: 0, 6: 0 },
-      weeklyNotes: {
-        0: 'Backend API development',
-        1: 'Database optimization',
-        2: 'Performance improvements',
-        3: 'Security enhancements',
-        4: 'Documentation updates',
-        5: '',
-        6: ''
-      }
+  const [projects, setProjects] = useState<ProjectEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { currentUser: user } = useAuth();
+  
+  // Load user's projects and time entries for the week
+  useEffect(() => {
+    if (user) {
+      loadWeeklyData();
     }
-  ]);
+  }, [user, selectedWeek]);
+
+  const loadWeeklyData = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      
+      // Get all projects assigned to current user
+      const allProjects = await ProjectService.getAllProjects();
+      const userProjects = allProjects.filter(project => 
+        (project as any).assigned_user_ids?.includes(parseInt(user.id))
+      );
+
+      // Get Monday of the selected week
+      const weekStart = startOfWeek(selectedWeek, { weekStartsOn: 1 });
+      const weekEnd = addDays(weekStart, 6);
+
+      // Get time entries for the week
+      const timeEntries = await TimeTrackingService.getAllTimeEntries({
+        start_date: format(weekStart, 'yyyy-MM-dd'),
+        end_date: format(weekEnd, 'yyyy-MM-dd')
+      });
+
+      // Filter time entries for current user
+      const userTimeEntries = timeEntries.filter(entry => 
+        (entry as any).user === parseInt(user.id)
+      );
+
+      // Create project entries with weekly data
+      const projectEntries: ProjectEntry[] = userProjects.map(project => {
+        const weeklyHours: { [dayIndex: number]: number } = {};
+        const weeklyNotes: { [dayIndex: number]: string } = {};
+
+        // Initialize all days to 0 hours and empty notes
+        for (let i = 0; i < 7; i++) {
+          weeklyHours[i] = 0;
+          weeklyNotes[i] = '';
+        }
+
+        // Fill in actual data from time entries
+        userTimeEntries.forEach(entry => {
+          if (String((entry as any).project) === String(project.id)) {
+            const entryDate = new Date((entry as any).date);
+            const dayIndex = (entryDate.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
+            weeklyHours[dayIndex] = entry.hours;
+            weeklyNotes[dayIndex] = (entry as any).note || '';
+          }
+        });
+
+        return {
+          id: String(project.id),
+          name: project.name,
+          weeklyHours,
+          weeklyNotes
+        };
+      });
+
+      setProjects(projectEntries);
+    } catch (error) {
+      console.error('Error loading weekly data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Get Monday of the selected week
   const weekStart = startOfWeek(selectedWeek, { weekStartsOn: 1 });
@@ -98,10 +130,64 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
   // Calculate total weekly hours
   const totalWeeklyHours = dailyTotals.reduce((sum, dayTotal) => sum + dayTotal, 0);
 
-  // Auto-save functionality
-  const autoSave = (updatedProjects: ProjectEntry[]) => {
-    console.log('Auto-saving weekly data...', updatedProjects);
+  // Auto-save functionality - save to API
+  const autoSave = async (updatedProjects: ProjectEntry[]) => {
     setProjects(updatedProjects);
+    
+    // Save changes to API (will implement per-entry saving)
+    console.log('Auto-saving weekly data to API...', updatedProjects);
+  };
+
+  // Save individual time entry to API
+  const saveTimeEntryToAPI = async (projectId: string, dayIndex: number, hours: number, notes: string) => {
+    if (!user) return;
+
+    try {
+      const weekStart = startOfWeek(selectedWeek, { weekStartsOn: 1 });
+      const entryDate = addDays(weekStart, dayIndex);
+      const dateString = format(entryDate, 'yyyy-MM-dd');
+
+      // Check if time entry exists for this date and project
+      const timeEntries = await TimeTrackingService.getAllTimeEntries({
+        date: dateString
+      });
+
+      const existingEntry = timeEntries.find(entry => 
+        String((entry as any).project) === String(projectId) && 
+        (entry as any).user === parseInt(user.id)
+      );
+
+      if (existingEntry) {
+        // Update existing entry
+        const response = await fetch(`http://localhost:8000/api/hours/${(existingEntry as any).id}/`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${localStorage.getItem('auth_token')}`
+          },
+          body: JSON.stringify({
+            project: parseInt(projectId),
+            date: dateString,
+            hours: hours,
+            note: notes
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to update time entry');
+        }
+      } else if (hours > 0) {
+        // Create new entry only if hours > 0
+        await TimeTrackingService.createTimeEntry({
+          project: parseInt(projectId),
+          date: dateString,
+          hours: hours,
+          note: notes
+        });
+      }
+    } catch (error) {
+      console.error('Failed to save time entry:', error);
+    }
   };
 
   const updateProjectHours = (projectId: string, dayIndex: number, hours: number) => {
@@ -128,10 +214,17 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
       }
       return project;
     });
+    
+    // Save to API
+    const currentNotes = project?.weeklyNotes[dayIndex] || '';
+    saveTimeEntryToAPI(projectId, dayIndex, newHours, currentNotes);
+    
     autoSave(updatedProjects);
   };
 
   const updateProjectNotes = (projectId: string, dayIndex: number, notes: string) => {
+    const project = projects.find(p => p.id === projectId);
+    
     const updatedProjects = projects.map(project => {
       if (project.id === projectId) {
         const updatedNotes = { ...project.weeklyNotes, [dayIndex]: notes };
@@ -139,6 +232,11 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
       }
       return project;
     });
+    
+    // Save to API
+    const currentHours = project?.weeklyHours[dayIndex] || 0;
+    saveTimeEntryToAPI(projectId, dayIndex, currentHours, notes);
+    
     autoSave(updatedProjects);
   };
 
@@ -280,7 +378,12 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
       </div>
 
       {/* Weekly time tracking table */}
-      <div className="overflow-x-auto border rounded-lg">
+      {loading ? (
+        <div className="flex justify-center items-center py-8 border rounded-lg">
+          <div className="text-lg text-gray-600">Loading weekly data...</div>
+        </div>
+      ) : (
+        <div className="overflow-x-auto border rounded-lg">
         <div className="min-w-[800px]">
           <table className="w-full">
             <thead className="sticky top-0 bg-blue-600 text-white z-10">
@@ -344,6 +447,7 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
           </table>
         </div>
       </div>
+      )}
 
       {/* Notes Dialog */}
       <Dialog open={notesDialog.isOpen} onOpenChange={closeNotesDialog}>

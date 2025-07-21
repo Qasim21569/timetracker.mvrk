@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { projectService, userService } from '@/services/dataService';
+import { ProjectService, UserService, ProjectAssignmentService, ApiError } from '@/services/api';
 import { Project, User } from '@/data/dummyData';
 import { toast } from '@/hooks/use-toast';
 
@@ -25,7 +25,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
   const [clientName, setClientName] = useState(project.client);
   const [startDate, setStartDate] = useState(project.startDate || '');
   const [endDate, setEndDate] = useState(project.endDate || '');
-  const [assignedUserIds, setAssignedUserIds] = useState<string[]>([...project.assignedUserIds]);
+  const [assignedUserIds, setAssignedUserIds] = useState<string[]>([...(project.assignedUserIds || (project as any).assigned_user_ids?.map(String) || [])]);
   const [selectedAvailableUserIds, setSelectedAvailableUserIds] = useState<string[]>([]);
   const [selectedAssignedUserIds, setSelectedAssignedUserIds] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true); // Project status
@@ -39,19 +39,22 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
     clientName: project.client,
     startDate: project.startDate || '',
     endDate: project.endDate || '',
-    assignedUserIds: [...project.assignedUserIds],
+    assignedUserIds: [...(project.assignedUserIds || (project as any).assigned_user_ids?.map(String) || [])],
     isActive: true
   };
 
   useEffect(() => {
-    try {
-      const allUsers = userService.getAll();
-      setUsers(allUsers);
-      setError(null);
-    } catch (err) {
-      console.error('Failed to load users:', err);
-      setError('Failed to load users. Please refresh the page.');
-    }
+    const loadUsers = async () => {
+      try {
+        const allUsers = await UserService.getAllUsers();
+        setUsers(allUsers);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to load users:', err);
+        setError('Failed to load users. Please refresh the page.');
+      }
+    };
+    loadUsers();
   }, []);
 
   const availableUsers = users.filter(user => !assignedUserIds.includes(user.id));
@@ -136,34 +139,58 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
     setError(null);
 
     try {
-      const updatedProject = projectService.update(project.id, {
+      // Update project basic info
+      const updatedProject = await ProjectService.updateProject(project.id, {
         name: projectName.trim(),
         client: clientName.trim(),
         startDate: startDate || undefined,
         endDate: endDate || undefined,
-        assignedUserIds: assignedUserIds
       });
 
-      if (updatedProject) {
-        toast({
-          title: "Success",
-          description: `Project "${updatedProject.name}" has been updated successfully!`
-        });
-        onProjectUpdated?.();
-        onClose();
-      } else {
-        throw new Error('Project not found');
+      // Update project assignments if changed
+      const currentAssignedIds = (project as any).assigned_user_ids || [];
+      const newAssignedIds = assignedUserIds.map(id => parseInt(id));
+      
+      if (JSON.stringify(currentAssignedIds.sort()) !== JSON.stringify(newAssignedIds.sort())) {
+        // Clear current assignments and set new ones
+        await ProjectAssignmentService.unassignUsersFromProject(
+          project.id, 
+          currentAssignedIds
+        );
+        
+        if (newAssignedIds.length > 0) {
+          await ProjectAssignmentService.assignUsersToProject(
+            project.id,
+            newAssignedIds,
+            'Project team updated'
+          );
+        }
       }
+
+      toast({
+        title: "Success",
+        description: `Project "${updatedProject.name}" has been updated successfully!`
+      });
+      onProjectUpdated?.();
+      onClose();
     } catch (err) {
       console.error('Error updating project:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      setError(`Failed to update project: ${errorMessage}`);
-      
-      toast({
-        title: "Error",
-        description: "There was an error updating the project. Please try again.",
-        variant: "destructive"
-      });
+      if (err instanceof ApiError) {
+        setError(`Failed to update project: ${err.message}`);
+        toast({
+          title: "Error",
+          description: err.message,
+          variant: "destructive"
+        });
+      } else {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+        setError(`Failed to update project: ${errorMessage}`);
+        toast({
+          title: "Error",
+          description: "There was an error updating the project. Please try again.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }

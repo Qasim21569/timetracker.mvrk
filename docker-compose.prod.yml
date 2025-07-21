@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # Backend Django API with Gunicorn
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: timetracker-backend-prod
+    ports:
+      - "8000:8000"
+    volumes:
+      - backend_static:/app/staticfiles
+      - backend_media:/app/media
+    environment:
+      - DEBUG=0
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,your-domain.com
+      - CORS_ALLOWED_ORIGINS=http://localhost,https://your-domain.com
+      - DATABASE_URL=postgresql://timetracker_user:timetracker_pass@db:5432/timetracker
+    networks:
+      - timetracker-network
+    command: >
+      sh -c "python manage.py collectstatic --noinput &&
+             python manage.py migrate &&
+             gunicorn tracker.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120"
+    depends_on:
+      - db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: timetracker-db-prod
+    environment:
+      POSTGRES_DB: timetracker
+      POSTGRES_USER: timetracker_user
+      POSTGRES_PASSWORD: timetracker_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - timetracker-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U timetracker_user"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy (Optional)
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: timetracker-nginx
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf
+  #     - backend_static:/var/www/static
+  #     - backend_media:/var/www/media
+  #   networks:
+  #     - timetracker-network
+  #   depends_on:
+  #     - backend
+  #   restart: unless-stopped
+
+volumes:
+  postgres_data:
+  backend_static:
+  backend_media:
+
+networks:
+  timetracker-network:
+    driver: bridge 

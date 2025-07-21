@@ -7,7 +7,8 @@ import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { format, addDays, subDays } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { projectService, timeEntryService } from '@/services/dataService';
+import { TimeTrackingService, ProjectService, ApiError } from '@/services/api';
+import { timeEntryService } from '@/services/dataService';
 import { Project, TimeEntry } from '@/data/dummyData';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -42,34 +43,52 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
     }
   }, [user, selectedDate]);
 
-  const loadProjectsAndTimeEntries = () => {
+  const loadProjectsAndTimeEntries = async () => {
     if (!user) return;
 
-    // Get projects assigned to this user
-    const userProjects = projectService.getByUserId(user.id);
+    try {
+      // Get all projects (they already include assignment info from backend)
+      const allProjects = await ProjectService.getAllProjects();
+      
+      // Filter projects assigned to current user
+      const userProjects = allProjects.filter(project => 
+        (project as any).assigned_user_ids?.includes(parseInt(user.id))
+      );
     
     // Get time entries for this user and date
     const dateString = format(selectedDate, 'yyyy-MM-dd');
-    const timeEntries = timeEntryService.getByUserIdAndDate(user.id, dateString);
+      const timeEntries = await TimeTrackingService.getAllTimeEntries({
+        date: dateString
+      });
+      
+      // Filter time entries for current user
+      const userTimeEntries = timeEntries.filter(entry => 
+        (entry as any).user === parseInt(user.id)
+      );
     
          // Create project entries with existing time data
      const projectEntries: ProjectEntry[] = userProjects.map(project => {
-       const existingEntry = timeEntries.find(entry => entry.projectId === project.id);
+        const existingEntry = userTimeEntries.find(entry => 
+          String((entry as any).project) === String(project.id)
+        );
        return {
-         id: project.id,
+          id: String(project.id),
          name: project.name,
          hours: existingEntry?.hours || 0,
-         notes: existingEntry?.notes || ''
+          notes: (existingEntry as any)?.note || '' // Note: backend uses 'note' not 'notes'
        };
      });
 
     setProjects(projectEntries);
+    } catch (error) {
+      console.error('Error loading projects and time entries:', error);
+    }
   };
 
   // Calculate total hours for the day
   const totalHours = projects.reduce((sum, project) => sum + project.hours, 0);
 
-  // Save hours to localStorage
+  // Save hours to API
   const saveHoursToDatabase = async (projectId: string, hours: number) => {
     if (!user) return;
     
@@ -77,41 +96,98 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
       const dateString = format(selectedDate, 'yyyy-MM-dd');
       const existingProject = projects.find(p => p.id === projectId);
       
-      // Save to localStorage using timeEntryService
-      timeEntryService.upsert({
-        userId: user.id,
-        projectId: projectId,
+      // Check if time entry exists
+      const timeEntries = await TimeTrackingService.getAllTimeEntries({
+        date: dateString
+      });
+      
+      const existingEntry = timeEntries.find(entry => 
+        String((entry as any).project) === String(projectId) && 
+        (entry as any).user === parseInt(user.id)
+      );
+      
+      if (existingEntry) {
+        // Update existing entry
+        const response = await fetch(`http://localhost:8000/api/hours/${(existingEntry as any).id}/`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${localStorage.getItem('auth_token')}`
+          },
+          body: JSON.stringify({
+            project: parseInt(projectId),
+            date: dateString,
+            hours: hours,
+            note: existingProject?.notes || ''
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to update time entry');
+        }
+      } else {
+        // Create new entry
+        await TimeTrackingService.createTimeEntry({
+          project: parseInt(projectId),
         date: dateString,
         hours: hours,
-        notes: existingProject?.notes || ''
+          note: existingProject?.notes || ''
       });
+      }
       
     } catch (error) {
       console.error('Failed to save hours:', error);
     }
   };
 
-  // Save notes to localStorage with debouncing
+  // Save notes to API with debouncing
   const saveNotesToDatabase = async (projectId: string, notes: string) => {
     if (!user) return;
     
     try {
       setSavingStatus(prev => ({ ...prev, [projectId]: 'saving' }));
       
-      // Simulate API delay for visual feedback
-      await new Promise(resolve => setTimeout(resolve, 400));
-      
       const dateString = format(selectedDate, 'yyyy-MM-dd');
       const existingProject = projects.find(p => p.id === projectId);
       
-      // Save to localStorage using timeEntryService
-      timeEntryService.upsert({
-        userId: user.id,
-        projectId: projectId,
-        date: dateString,
-        hours: existingProject?.hours || 0,
-        notes: notes
+      // Check if time entry exists
+      const timeEntries = await TimeTrackingService.getAllTimeEntries({
+        date: dateString
       });
+      
+      const existingEntry = timeEntries.find(entry => 
+        String((entry as any).project) === String(projectId) && 
+        (entry as any).user === parseInt(user.id)
+      );
+      
+      if (existingEntry) {
+        // Update existing entry - call custom API update
+        const response = await fetch(`http://localhost:8000/api/hours/${(existingEntry as any).id}/`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${localStorage.getItem('auth_token')}`
+          },
+          body: JSON.stringify({
+            project: parseInt(projectId),
+            date: dateString,
+            hours: existingProject?.hours || 0,
+            note: notes
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to update time entry');
+        }
+      } else {
+        // Create new entry
+        await TimeTrackingService.createTimeEntry({
+          project: parseInt(projectId),
+          date: dateString,
+          hours: existingProject?.hours || 0,
+          note: notes
+        });
+      }
       
       setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
       setLastSaved(prev => ({ ...prev, [projectId]: new Date() }));

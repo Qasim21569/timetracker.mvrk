@@ -1,0 +1,905 @@
+{
+	"info": {
+		"_postman_id": "time-tracker-api-complete",
+		"name": "Time Tracker API - Complete Collection",
+		"description": "Complete API testing collection for Time Tracker SaaS application with enhanced authentication, user management, project assignment system, and time tracking.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{auth_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "admin_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "project_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "🔐 Authentication",
+			"item": [
+				{
+					"name": "Admin Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('admin_token', response.token);",
+									"    pm.collectionVariables.set('auth_token', response.token);",
+									"    console.log('Admin token saved:', response.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/login/",
+							"host": ["{{base_url}}"],
+							"path": ["login", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Signup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('user_id', response.id);",
+									"    console.log('User created with ID:', response.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testuser\",\n    \"email\": \"test@example.com\",\n    \"password\": \"testpass123\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/signup/",
+							"host": ["{{base_url}}"],
+							"path": ["signup", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('auth_token', response.token);",
+									"    console.log('User token saved:', response.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"testpass123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/login/",
+							"host": ["{{base_url}}"],
+							"path": ["login", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/profile/",
+							"host": ["{{base_url}}"],
+							"path": ["profile", ""]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "👥 User Management",
+			"item": [
+				{
+					"name": "List All Users (Admin Only)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/",
+							"host": ["{{base_url}}"],
+							"path": ["users", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Admin Users Only",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/?role=admin",
+							"host": ["{{base_url}}"],
+							"path": ["users", ""],
+							"query": [
+								{
+									"key": "role",
+									"value": "admin"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Regular Users Only",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/?role=user",
+							"host": ["{{base_url}}"],
+							"path": ["users", ""],
+							"query": [
+								{
+									"key": "role",
+									"value": "user"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create New User (Admin Only)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('user_id', response.id);",
+									"    console.log('New user created with ID:', response.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"developer1\",\n    \"email\": \"dev1@example.com\",\n    \"password\": \"devpass123\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Developer\",\n    \"is_admin\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/",
+							"host": ["{{base_url}}"],
+							"path": ["users", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Details (Admin Only)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/{{user_id}}/",
+							"host": ["{{base_url}}"],
+							"path": ["users", "{{user_id}}", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User (Admin Only)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"first_name\": \"John Updated\",\n    \"last_name\": \"Developer Senior\",\n    \"email\": \"john.dev@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/{{user_id}}/",
+							"host": ["{{base_url}}"],
+							"path": ["users", "{{user_id}}", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Own Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"first_name\": \"Updated Name\",\n    \"last_name\": \"Updated Last\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/profile/update/",
+							"host": ["{{base_url}}"],
+							"path": ["profile", "update", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deactivate User (Admin Only)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/{{user_id}}/",
+							"host": ["{{base_url}}"],
+							"path": ["users", "{{user_id}}", ""]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📋 Project Management",
+			"item": [
+				{
+					"name": "List All Projects",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects/",
+							"host": ["{{base_url}}"],
+							"path": ["projects", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Project with Dates",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('project_id', response.id);",
+									"    console.log('Project created with ID:', response.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"E-commerce Platform\",\n    \"client\": \"Tech Solutions Inc\",\n    \"start_date\": \"2025-01-15\",\n    \"end_date\": \"2025-06-30\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/",
+							"host": ["{{base_url}}"],
+							"path": ["projects", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Project without Dates",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Mobile App Development\",\n    \"client\": \"Startup ABC\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/",
+							"host": ["{{base_url}}"],
+							"path": ["projects", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}/",
+							"host": ["{{base_url}}"],
+							"path": ["projects", "{{project_id}}", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Project with Dates",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"E-commerce Platform (Updated)\",\n    \"client\": \"Tech Solutions Inc\",\n    \"start_date\": \"2025-02-01\",\n    \"end_date\": \"2025-07-31\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}/",
+							"host": ["{{base_url}}"],
+							"path": ["projects", "{{project_id}}", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Project",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}/",
+							"host": ["{{base_url}}"],
+							"path": ["projects", "{{project_id}}", ""]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🔗 Project Assignment System",
+			"item": [
+				{
+					"name": "Assign Users to Project (Admin Only)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_ids\": [1, 2],\n    \"notes\": \"Assigning team lead and developer to project\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}/assign/",
+							"host": ["{{base_url}}"],
+							"path": ["projects", "{{project_id}}", "assign", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Single User to Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_ids\": [{{user_id}}],\n    \"notes\": \"Adding new team member\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}/assign/",
+							"host": ["{{base_url}}"],
+							"path": ["projects", "{{project_id}}", "assign", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unassign Users from Project (Admin Only)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_ids\": [{{user_id}}],\n    \"notes\": \"Removing team member from project\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}/unassign/",
+							"host": ["{{base_url}}"],
+							"path": ["projects", "{{project_id}}", "unassign", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project Assignments",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}/assignments/",
+							"host": ["{{base_url}}"],
+							"path": ["projects", "{{project_id}}", "assignments", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Projects",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/{{user_id}}/projects/",
+							"host": ["{{base_url}}"],
+							"path": ["users", "{{user_id}}", "projects", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Assignment Statistics (Admin Only)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/assignments/stats/",
+							"host": ["{{base_url}}"],
+							"path": ["assignments", "stats", ""]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "⏰ Time Tracking",
+			"item": [
+				{
+					"name": "List All Time Entries",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/hours/",
+							"host": ["{{base_url}}"],
+							"path": ["hours", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Filter Time Entries by Date",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/hours/?date=2025-01-15",
+							"host": ["{{base_url}}"],
+							"path": ["hours", ""],
+							"query": [
+								{
+									"key": "date",
+									"value": "2025-01-15"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Filter Time Entries by Date Range",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/hours/?start_date=2025-01-01&end_date=2025-01-31",
+							"host": ["{{base_url}}"],
+							"path": ["hours", ""],
+							"query": [
+								{
+									"key": "start_date",
+									"value": "2025-01-01"
+								},
+								{
+									"key": "end_date",
+									"value": "2025-01-31"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Time Entry",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"project\": {{project_id}},\n    \"date\": \"2025-01-15\",\n    \"hours\": 8.5,\n    \"note\": \"Worked on user authentication and project setup\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/hours/",
+							"host": ["{{base_url}}"],
+							"path": ["hours", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Time Entry",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"project\": {{project_id}},\n    \"date\": \"2025-01-15\",\n    \"hours\": 7.5,\n    \"note\": \"Updated: Worked on user authentication and project setup (revised hours)\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/hours/1/",
+							"host": ["{{base_url}}"],
+							"path": ["hours", "1", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Time Entry",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/hours/1/",
+							"host": ["{{base_url}}"],
+							"path": ["hours", "1", ""]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🧪 Testing Scenarios",
+			"item": [
+				{
+					"name": "Test Invalid Date Range",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Invalid Date Project\",\n    \"client\": \"Test Client\",\n    \"start_date\": \"2025-12-31\",\n    \"end_date\": \"2025-01-01\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/",
+							"host": ["{{base_url}}"],
+							"path": ["projects", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Test Assignment to Non-Existent Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_ids\": [1],\n    \"notes\": \"Testing non-existent project\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/999/assign/",
+							"host": ["{{base_url}}"],
+							"path": ["projects", "999", "assign", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Test Non-Admin Access to User Management",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/",
+							"host": ["{{base_url}}"],
+							"path": ["users", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Test Non-Admin Assignment Operation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_ids\": [1],\n    \"notes\": \"Testing regular user assignment\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}/assign/",
+							"host": ["{{base_url}}"],
+							"path": ["projects", "{{project_id}}", "assign", ""]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+} 

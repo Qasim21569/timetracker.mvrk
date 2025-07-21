@@ -10,18 +10,12 @@ import { Mail, Lock, LogIn, Chrome, Clock, Shield, User, Key, Eye, EyeOff } from
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useAuth();
-  const navigate = useNavigate();
+  const { login, loading, error } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    const success = await login(email, password);
-    if (!success) {
-      setError('Invalid email or password.');
-    }
+    await login(email, password);
   };
 
   return (
@@ -64,7 +58,7 @@ const LoginPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                   <Mail className="h-4 w-4 text-slate-500" />
-                  Email Address
+                  Email
                 </Label>
                 <div className="relative group">
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -73,7 +67,7 @@ const LoginPage = () => {
                     <Input
                       id="email"
                       type="email"
-                      placeholder="Enter your email address"
+                      placeholder="Enter your email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -123,11 +117,12 @@ const LoginPage = () => {
               {/* Enhanced Login Button */}
               <Button 
                 type="submit" 
-                className="w-full btn-gradient h-12 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300"
+                disabled={loading}
+                className="w-full btn-gradient h-12 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 size="lg"
               >
                 <LogIn className="mr-2 h-5 w-5" /> 
-                Sign In to Dashboard
+                {loading ? 'Signing In...' : 'Sign In to Dashboard'}
               </Button>
             </form>
 
@@ -147,7 +142,7 @@ const LoginPage = () => {
                     <span className="font-medium text-slate-700">Admin:</span>
                     <code className="ml-2 bg-slate-100 px-2 py-1 rounded text-slate-600">admin@example.com</code>
                     <span className="mx-1 text-slate-400">/</span>
-                    <code className="bg-slate-100 px-2 py-1 rounded text-slate-600">password</code>
+                    <code className="bg-slate-100 px-2 py-1 rounded text-slate-600">admin123</code>
                   </div>
                 </div>
                 
@@ -155,9 +150,9 @@ const LoginPage = () => {
                   <User className="h-4 w-4 text-blue-500" />
                   <div>
                     <span className="font-medium text-slate-700">User:</span>
-                    <code className="ml-2 bg-slate-100 px-2 py-1 rounded text-slate-600">user@example.com</code>
+                    <code className="ml-2 bg-slate-100 px-2 py-1 rounded text-slate-600">test@example.com</code>
                     <span className="mx-1 text-slate-400">/</span>
-                    <code className="bg-slate-100 px-2 py-1 rounded text-slate-600">password</code>
+                    <code className="bg-slate-100 px-2 py-1 rounded text-slate-600">testpass123</code>
                   </div>
                 </div>
               </div>

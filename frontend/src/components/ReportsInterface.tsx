@@ -6,7 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Filter, Download, Printer, BarChart3, TrendingUp, Calendar, Users } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { ProjectService, UserService, TimeTrackingService, ApiError } from '@/services/api';
+import { Project, User } from '@/data/dummyData';
 
 interface ReportData {
   project: string;
@@ -14,37 +16,68 @@ interface ReportData {
   projectTotal: number;
 }
 
-const dummyReportData: ReportData[] = [
-  {
-    project: 'Internal Meetings',
-    users: { 'Vuk Stajic': 24, 'Diego Oviedo': 20, 'Pretend Person': 21 },
-    projectTotal: 65
-  },
-  {
-    project: 'Project X',
-    users: { 'Vuk Stajic': 30, 'Diego Oviedo': 15, 'Pretend Person': 25 },
-    projectTotal: 70
-  },
-  {
-    project: 'Project Y',
-    users: { 'Vuk Stajic': 14, 'Diego Oviedo': 36, 'Pretend Person': 27 },
-    projectTotal: 77
-  }
-];
+interface UserData {
+  id: string;
+  name: string;
+}
 
-// Sort users alphabetically with "All Users" at the top
-const allUsers = ['All Users', ...['Vuk Stajic', 'Diego Oviedo', 'Pretend Person'].sort()];
-
-// Sort projects alphabetically with "All Projects" at the top  
-const allProjects = ['All Projects', ...['Internal Meetings', 'Project X', 'Project Y'].sort()];
+interface ProjectData {
+  id: string;
+  name: string;
+}
 
 const ReportsInterface = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [error, setError] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState('All Users');
   const [selectedProject, setSelectedProject] = useState('All Projects');
-  // Set default to current month instead of new Date()
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [showReport, setShowReport] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [reportData, setReportData] = useState<ReportData[]>([]);
+  const [users, setUsers] = useState<UserData[]>([]);
+  const [projects, setProjects] = useState<ProjectData[]>([]);
+  const [allUsers, setAllUsers] = useState<string[]>(['All Users']);
+  const [allProjects, setAllProjects] = useState<string[]>(['All Projects']);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+
+  // Load users and projects from API
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [usersData, projectsData] = await Promise.all([
+          UserService.getAllUsers(),
+          ProjectService.getAllProjects()
+        ]);
+
+        const userData: UserData[] = usersData.map(user => ({
+          id: user.id,
+          name: user.name || `User ${user.id}` // Fallback if name is empty
+        }));
+
+        const projectData: ProjectData[] = projectsData.map(project => ({
+          id: project.id,
+          name: project.name || `Project ${project.id}` // Fallback if name is empty
+        }));
+
+        setUsers(userData);
+        setProjects(projectData);
+
+        // Sort users and projects alphabetically, remove duplicates and filter out empty values
+        const sortedUserNames = [...new Set(userData.map(u => u.name).filter(name => name && name.trim() !== ''))].sort();
+        const sortedProjectNames = [...new Set(projectData.map(p => p.name).filter(name => name && name.trim() !== ''))].sort();
+
+        setAllUsers(['All Users', ...sortedUserNames]);
+        setAllProjects(['All Projects', ...sortedProjectNames]);
+        setIsDataLoaded(true);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        setError('Failed to load users and projects. Please refresh the page.');
+      }
+    };
+
+    loadData();
+  }, []);
 
   // Generate month and year options
   const months = [
@@ -57,6 +90,10 @@ const ReportsInterface = () => {
 
   // Initialize filters from URL parameters
   useEffect(() => {
+    if (allUsers.length <= 1 || allProjects.length <= 1) {
+      return; // Wait for data to load
+    }
+
     const userParam = searchParams.get('user');
     const projectParam = searchParams.get('project');
     const monthParam = searchParams.get('month');
@@ -82,10 +119,80 @@ const ReportsInterface = () => {
     if (userParam || projectParam || monthParam) {
       setShowReport(true);
     }
-  }, [searchParams]);
+  }, [searchParams, allUsers, allProjects]);
 
-  const handleGenerateReport = () => {
+  const handleGenerateReport = async () => {
+    try {
+      setLoading(true);
+      setShowReport(false);
+
+      // Get month range
+      const monthStart = startOfMonth(selectedMonth);
+      const monthEnd = endOfMonth(selectedMonth);
+
+      // Get time entries for the selected month
+      const timeEntries = await TimeTrackingService.getAllTimeEntries({
+        start_date: format(monthStart, 'yyyy-MM-dd'),
+        end_date: format(monthEnd, 'yyyy-MM-dd')
+      });
+
+      // Process data based on selected filters
+      const processedData = await processReportData(timeEntries);
+      setReportData(processedData);
     setShowReport(true);
+    } catch (error) {
+      console.error('Error generating report:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const processReportData = async (timeEntries: any[]): Promise<ReportData[]> => {
+    const projectsToInclude = selectedProject === 'All Projects' 
+      ? projects 
+      : projects.filter(p => p.name === selectedProject);
+
+    const usersToInclude = selectedUser === 'All Users'
+      ? users
+      : users.filter(u => u.name === selectedUser);
+
+    const reportDataMap: { [projectName: string]: ReportData } = {};
+
+    // Initialize report data for each project
+    projectsToInclude.forEach(project => {
+      reportDataMap[project.name] = {
+        project: project.name,
+        users: {},
+        projectTotal: 0
+      };
+
+      // Initialize each user with 0 hours
+      usersToInclude.forEach(user => {
+        reportDataMap[project.name].users[user.name] = 0;
+      });
+    });
+
+    // Process time entries
+    timeEntries.forEach((entry: any) => {
+      const project = projects.find(p => String(p.id) === String(entry.project));
+      const user = users.find(u => String(u.id) === String(entry.user));
+
+      if (!project || !user) return;
+
+      // Check if this project and user should be included
+      const shouldIncludeProject = selectedProject === 'All Projects' || project.name === selectedProject;
+      const shouldIncludeUser = selectedUser === 'All Users' || user.name === selectedUser;
+
+      if (shouldIncludeProject && shouldIncludeUser && reportDataMap[project.name]) {
+        if (!reportDataMap[project.name].users[user.name]) {
+          reportDataMap[project.name].users[user.name] = 0;
+        }
+        reportDataMap[project.name].users[user.name] += entry.hours;
+        reportDataMap[project.name].projectTotal += entry.hours;
+      }
+    });
+
+    return Object.values(reportDataMap);
   };
 
   const handleMonthChange = (monthName: string) => {
@@ -102,32 +209,29 @@ const ReportsInterface = () => {
 
   const calculateUserTotals = () => {
     const totals: { [key: string]: number } = {};
-    ['Vuk Stajic', 'Diego Oviedo', 'Pretend Person'].forEach(user => {
-      totals[user] = dummyReportData.reduce((sum, project) => sum + (project.users[user] || 0), 0);
+    const usersToCalculate = selectedUser === 'All Users' 
+      ? users.map(u => u.name) 
+      : [selectedUser];
+
+    usersToCalculate.forEach(userName => {
+      totals[userName] = reportData.reduce((sum, project) => sum + (project.users[userName] || 0), 0);
     });
     return totals;
   };
 
   const calculateOverallTotal = () => {
-    return dummyReportData.reduce((sum, project) => sum + project.projectTotal, 0);
+    return reportData.reduce((sum, project) => sum + project.projectTotal, 0);
   };
 
   // Filter data based on selections
   const getFilteredData = () => {
-    let filteredData = [...dummyReportData];
-    
-    // Filter by project if not "All Projects"
-    if (selectedProject !== 'All Projects') {
-      filteredData = filteredData.filter(item => item.project === selectedProject);
-    }
-    
-    return filteredData;
+    return reportData; // Data is already filtered in processReportData
   };
 
   // Get visible users based on selection
   const getVisibleUsers = () => {
     if (selectedUser === 'All Users') {
-      return ['Vuk Stajic', 'Diego Oviedo', 'Pretend Person'];
+      return users.map(u => u.name);
     }
     return [selectedUser];
   };
@@ -149,6 +253,22 @@ const ReportsInterface = () => {
   
   // Special case: All Users + Specific Project = Show Print Report button
   const showPrintReport = showAllUsers && !showAllProjects;
+
+  if (error) {
+    return (
+      <div className="space-y-6 md:space-y-8 p-6 md:p-8">
+        <div className="text-center py-12">
+          <div className="text-red-600 text-lg mb-4">{error}</div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 md:space-y-8 p-6 md:p-8">
@@ -176,6 +296,12 @@ const ReportsInterface = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {!isDataLoaded ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="text-gray-600">Loading filters...</div>
+            </div>
+          ) : (
+            <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
@@ -187,8 +313,8 @@ const ReportsInterface = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {allUsers.map(user => (
-                    <SelectItem key={user} value={user}>{user}</SelectItem>
+                  {allUsers.filter(user => user && user.trim() !== '').map((user, index) => (
+                    <SelectItem key={`user-${index}`} value={user}>{user}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -204,8 +330,8 @@ const ReportsInterface = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {allProjects.map(project => (
-                    <SelectItem key={project} value={project}>{project}</SelectItem>
+                  {allProjects.filter(project => project && project.trim() !== '').map((project, index) => (
+                    <SelectItem key={`project-${index}`} value={project}>{project}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -225,8 +351,8 @@ const ReportsInterface = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {months.map(month => (
-                      <SelectItem key={month} value={month}>{month}</SelectItem>
+                  {months.map((month, index) => (
+                    <SelectItem key={`month-${index}`} value={month}>{month}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -238,8 +364,8 @@ const ReportsInterface = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {years.map(year => (
-                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                  {years.map((year, index) => (
+                    <SelectItem key={`year-${index}`} value={year.toString()}>{year}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -252,8 +378,9 @@ const ReportsInterface = () => {
               onClick={handleGenerateReport}
               className="btn-gradient px-6 py-3 text-base font-medium"
               size="lg"
+              disabled={loading}
             >
-              Generate Report
+              {loading ? 'Generating...' : 'Generate Report'}
             </Button>
             {showReport && (
               <>
@@ -270,11 +397,21 @@ const ReportsInterface = () => {
               </>
             )}
           </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
       {/* Enhanced Results Card */}
-      {showReport && (
+      {loading && (
+        <Card className="card-enhanced border-0 shadow-soft">
+          <div className="flex justify-center items-center py-12">
+            <div className="text-lg text-gray-600">Generating report...</div>
+          </div>
+        </Card>
+      )}
+
+      {showReport && !loading && (
         <Card className="card-enhanced border-0 shadow-soft">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-3 text-xl">
@@ -308,7 +445,14 @@ const ReportsInterface = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredData.map((row, index) => (
+                  {filteredData.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={100} className="text-center py-8 text-gray-500">
+                        No time entries found for the selected criteria.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredData.map((row, index) => (
                     <TableRow 
                       key={row.project} 
                       className={`
@@ -328,8 +472,8 @@ const ReportsInterface = () => {
                         <TableCell className="text-center font-semibold">{row.projectTotal}</TableCell>
                       )}
                     </TableRow>
-                  ))}
-                  {(showUserTotals || isSimpleUserReport) && (
+                  )))}
+                  {filteredData.length > 0 && (showUserTotals || isSimpleUserReport) && (
                     <TableRow className="border-t-2 border-slate-300 bg-gradient-to-r from-blue-50 to-purple-50">
                       <TableCell className="font-bold text-slate-800">
                         {isSimpleUserReport ? 'User Totals' : 'User Totals'}

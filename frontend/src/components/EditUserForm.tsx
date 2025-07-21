@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
-import { userService } from '@/services/dataService';
-import { User as UserType, UserRole } from '@/data/dummyData';
+import { UserService, ApiError } from '@/services/api';
+import { User as UserType } from '@/data/dummyData';
 
 interface EditUserFormProps {
   user: UserType;
@@ -19,32 +19,26 @@ interface EditUserFormProps {
 const EditUserForm = ({ user, onClose, onUserUpdated }: EditUserFormProps) => {
   const [firstName, lastName] = user.name.split(' ');
   const [formData, setFormData] = useState({
-    firstName: firstName || '',
-    lastName: lastName || '',
-    title: user.title || '',
+    first_name: firstName || '',
+    last_name: lastName || '',
     email: user.email,
-    role: user.role,
-    password: user.password || 'password'
+    is_admin: user.role === 'admin',
+    username: user.email || '', // Use email as username for new API
+    password: '' // Leave empty unless changing password
   });
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateForm = () => {
     const missingFields = [];
-    if (!formData.firstName.trim()) missingFields.push('First Name');
-    if (!formData.lastName.trim()) missingFields.push('Last Name');
+    if (!formData.first_name.trim()) missingFields.push('First Name');
+    if (!formData.last_name.trim()) missingFields.push('Last Name');
     if (!formData.email.trim()) missingFields.push('Email');
     
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (formData.email && !emailRegex.test(formData.email)) {
       missingFields.push('Valid Email Format');
-    }
-
-    // Check if email already exists (but not for current user)
-    const existingUser = userService.getByEmail(formData.email);
-    if (existingUser && existingUser.id !== user.id) {
-      missingFields.push('Unique Email (this email is already in use)');
     }
     
     return missingFields;
@@ -70,31 +64,39 @@ const EditUserForm = ({ user, onClose, onUserUpdated }: EditUserFormProps) => {
   const handleConfirmUpdate = async () => {
     setIsSubmitting(true);
     try {
-      const updatedUser = userService.update(user.id, {
-        name: `${formData.firstName} ${formData.lastName}`,
-        title: formData.title.trim() || undefined,
+      // Prepare update data - only include fields that are being updated
+      const updateData: any = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
         email: formData.email,
-        role: formData.role,
-        password: formData.password,
-        avatarUrl: `https://i.pravatar.cc/150?u=${formData.email}`
-      });
+        is_admin: formData.is_admin
+      };
 
-      if (updatedUser) {
+      // Only include password if it's been changed
+      if (formData.password.trim()) {
+        updateData.password = formData.password;
+      }
+
+      const updatedUser = await UserService.updateUser(user.id, updateData);
+
         toast({
           title: "User Updated Successfully",
-          description: `${updatedUser.name} has been updated!`
+        description: `${(updatedUser as any).name || `${(updatedUser as any).first_name} ${(updatedUser as any).last_name}`} has been updated!`
         });
         setShowConfirmDialog(false);
         onUserUpdated?.();
         onClose();
-      } else {
-        throw new Error('User not found');
-      }
     } catch (error) {
       console.error('Error updating user:', error);
+      let errorMessage = 'There was an error updating the user. Please try again.';
+      
+      if (error instanceof ApiError) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error Updating User",
-        description: "There was an error updating the user. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -115,8 +117,8 @@ const EditUserForm = ({ user, onClose, onUserUpdated }: EditUserFormProps) => {
                 <Label htmlFor="firstName">First Name *</Label>
                 <Input
                   id="firstName"
-                  value={formData.firstName}
-                  onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                  value={formData.first_name}
+                  onChange={(e) => setFormData({...formData, first_name: e.target.value})}
                   placeholder="Enter first name"
                 />
               </div>
@@ -124,23 +126,11 @@ const EditUserForm = ({ user, onClose, onUserUpdated }: EditUserFormProps) => {
                 <Label htmlFor="lastName">Last Name *</Label>
                 <Input
                   id="lastName"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                  value={formData.last_name}
+                  onChange={(e) => setFormData({...formData, last_name: e.target.value})}
                   placeholder="Enter last name"
                 />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="title">Job Title</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData({...formData, title: e.target.value})}
-                placeholder="Enter job title (e.g., Senior Developer, Project Manager)"
-                maxLength={60}
-              />
-              <p className="text-xs text-gray-500">Optional - User's job title or position</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -156,7 +146,10 @@ const EditUserForm = ({ user, onClose, onUserUpdated }: EditUserFormProps) => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="role">User Role *</Label>
-                <Select value={formData.role} onValueChange={(value: UserRole) => setFormData({...formData, role: value})}>
+                <Select 
+                  value={formData.is_admin ? 'admin' : 'user'} 
+                  onValueChange={(value) => setFormData({...formData, is_admin: value === 'admin'})}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -168,17 +161,16 @@ const EditUserForm = ({ user, onClose, onUserUpdated }: EditUserFormProps) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="password">Password *</Label>
+              <Label htmlFor="password">Password (leave blank to keep current password)</Label>
                 <Input
                   id="password"
-                  type="text"
+                type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  placeholder="password"
+                placeholder="Enter new password or leave blank"
                 />
-              </div>
+              <p className="text-xs text-gray-500">Only fill this field if you want to change the user's password</p>
             </div>
 
             <div className="flex gap-4 pt-4">
@@ -196,11 +188,10 @@ const EditUserForm = ({ user, onClose, onUserUpdated }: EditUserFormProps) => {
             <AlertDialogDescription>
               Are you sure the information is correct and you want to proceed with updating this user?
               <br /><br />
-              <strong>Name:</strong> {formData.firstName} {formData.lastName}<br />
-              {formData.title && <><strong>Title:</strong> {formData.title}<br /></>}
+              <strong>Name:</strong> {formData.first_name} {formData.last_name}<br />
               <strong>Email:</strong> {formData.email}<br />
-              <strong>Role:</strong> {formData.role === 'admin' ? 'Admin' : 'User'}<br />
-              <strong>Password:</strong> {formData.password}
+              <strong>Role:</strong> {formData.is_admin ? 'Admin' : 'User'}<br />
+              {formData.password && <><strong>Password:</strong> Will be updated<br /></>}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
