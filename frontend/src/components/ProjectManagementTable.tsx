@@ -11,9 +11,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 interface ProjectManagementTableProps {
   onEditProject: (project: Project) => void;
   refreshTrigger?: number;
+  onProjectDeleted?: () => void; // Callback to notify parent when project is deleted
 }
 
-const ProjectManagementTable = ({ onEditProject, refreshTrigger }: ProjectManagementTableProps) => {
+const ProjectManagementTable = ({ onEditProject, refreshTrigger, onProjectDeleted }: ProjectManagementTableProps) => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -66,7 +67,8 @@ const ProjectManagementTable = ({ onEditProject, refreshTrigger }: ProjectManage
     setIsDeleting(projectId);
     try {
       await ProjectService.deleteProject(projectId);
-        loadProjectsAndUsers(); // Refresh the list
+      loadProjectsAndUsers(); // Refresh the list
+      onProjectDeleted?.(); // Notify parent to update statistics
     } catch (error) {
       console.error('Error deleting project:', error);
       if (error instanceof ApiError) {

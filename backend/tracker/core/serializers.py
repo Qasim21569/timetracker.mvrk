@@ -181,6 +181,8 @@ class ProjectAssignmentRequestSerializer(serializers.Serializer):
 
 
 class HourEntrySerializer(serializers.ModelSerializer):
+    hours = serializers.DecimalField(max_digits=5, decimal_places=2, coerce_to_string=False)
+    
     class Meta:
         model = HourEntry
         fields = ['id', 'user', 'project', 'date', 'hours', 'note']

@@ -95,7 +95,7 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
           if (String((entry as any).project) === String(project.id)) {
             const entryDate = new Date((entry as any).date);
             const dayIndex = (entryDate.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
-            weeklyHours[dayIndex] = entry.hours;
+            weeklyHours[dayIndex] = Number(entry.hours || 0);
             weeklyNotes[dayIndex] = (entry as any).note || '';
           }
         });
@@ -124,11 +124,11 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
 
   // Calculate daily totals
   const dailyTotals = weekDays.map((_, dayIndex) => 
-    projects.reduce((sum, project) => sum + (project.weeklyHours[dayIndex] || 0), 0)
+    projects.reduce((sum, project) => sum + Number(project.weeklyHours[dayIndex] || 0), 0)
   );
 
   // Calculate total weekly hours
-  const totalWeeklyHours = dailyTotals.reduce((sum, dayTotal) => sum + dayTotal, 0);
+  const totalWeeklyHours = dailyTotals.reduce((sum, dayTotal) => sum + Number(dayTotal || 0), 0);
 
   // Auto-save functionality - save to API
   const autoSave = async (updatedProjects: ProjectEntry[]) => {

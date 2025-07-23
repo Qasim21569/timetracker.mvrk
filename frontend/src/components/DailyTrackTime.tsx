@@ -74,7 +74,7 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
        return {
           id: String(project.id),
          name: project.name,
-         hours: existingEntry?.hours || 0,
+         hours: Number(existingEntry?.hours || 0),
           notes: (existingEntry as any)?.note || '' // Note: backend uses 'note' not 'notes'
        };
      });
@@ -86,7 +86,7 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
   };
 
   // Calculate total hours for the day
-  const totalHours = projects.reduce((sum, project) => sum + project.hours, 0);
+  const totalHours = projects.reduce((sum, project) => sum + Number(project.hours || 0), 0);
 
   // Save hours to API
   const saveHoursToDatabase = async (projectId: string, hours: number) => {

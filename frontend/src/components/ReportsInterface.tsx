@@ -187,8 +187,10 @@ const ReportsInterface = () => {
         if (!reportDataMap[project.name].users[user.name]) {
           reportDataMap[project.name].users[user.name] = 0;
         }
-        reportDataMap[project.name].users[user.name] += entry.hours;
-        reportDataMap[project.name].projectTotal += entry.hours;
+        // Ensure hours is treated as a number to prevent string concatenation
+        const hoursAsNumber = Number(entry.hours) || 0;
+        reportDataMap[project.name].users[user.name] += hoursAsNumber;
+        reportDataMap[project.name].projectTotal += hoursAsNumber;
       }
     });
 

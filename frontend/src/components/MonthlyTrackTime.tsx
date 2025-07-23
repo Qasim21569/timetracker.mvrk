@@ -56,7 +56,7 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
       timeEntries.forEach(entry => {
         if ((entry as any).user === parseInt(user.id)) {
           const dateKey = (entry as any).date;
-          dailyHours[dateKey] = (dailyHours[dateKey] || 0) + entry.hours;
+          dailyHours[dateKey] = (dailyHours[dateKey] || 0) + Number(entry.hours || 0);
         }
       });
 
@@ -78,7 +78,7 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
   const monthStart = startOfMonth(selectedMonth);
   const monthEnd = endOfMonth(selectedMonth);
   const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
-  const monthlyTotal = monthDays.reduce((total, day) => total + getDayHours(day), 0);
+  const monthlyTotal = monthDays.reduce((total, day) => total + Number(getDayHours(day) || 0), 0);
 
   // Generate calendar days (including padding days from previous/next month)
   const getCalendarDays = (): DayData[] => {
@@ -343,7 +343,7 @@ const DailyTrackTimeEmbedded: React.FC<DailyTrackTimeEmbeddedProps> = ({ selecte
         return {
           id: String(project.id),
           name: project.name,
-          hours: existingEntry?.hours || 0,
+          hours: Number(existingEntry?.hours || 0),
           notes: (existingEntry as any)?.note || ''
         };
       });
@@ -357,7 +357,7 @@ const DailyTrackTimeEmbedded: React.FC<DailyTrackTimeEmbeddedProps> = ({ selecte
   };
 
   // Calculate total hours for the day
-  const totalHours = projects.reduce((sum, project) => sum + project.hours, 0);
+  const totalHours = projects.reduce((sum, project) => sum + Number(project.hours || 0), 0);
 
   // Auto-save functionality
   const autoSave = (updatedProjects: typeof projects) => {

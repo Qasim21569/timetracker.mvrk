@@ -12,9 +12,10 @@ import { toast } from '@/hooks/use-toast';
 interface UserManagementTableProps {
   onEditUser: (user: UserType) => void;
   refreshTrigger?: number; // To trigger refresh from parent
+  onUserDeleted?: () => void; // Callback to notify parent when user is deleted
 }
 
-const UserManagementTable = ({ onEditUser, refreshTrigger }: UserManagementTableProps) => {
+const UserManagementTable = ({ onEditUser, refreshTrigger, onUserDeleted }: UserManagementTableProps) => {
   const navigate = useNavigate();
   const [users, setUsers] = useState<UserType[]>([]);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -77,7 +78,8 @@ const UserManagementTable = ({ onEditUser, refreshTrigger }: UserManagementTable
         description: `${userToDelete?.name || 'User'} has been removed from the system.`
       });
       
-        loadUsers(); // Refresh the list
+      loadUsers(); // Refresh the list
+      onUserDeleted?.(); // Notify parent to update statistics
     } catch (error) {
       console.error('Error deleting user:', error);
       let errorMessage = 'Failed to delete user';

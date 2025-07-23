@@ -6,7 +6,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import AddProjectForm from '@/components/AddProjectForm';
 import EditProjectForm from '@/components/EditProjectForm';
 import AdminTabs from '@/components/layout/AdminTabs';
-import { projectService, userService } from '@/services/dataService';
+import { ProjectService, UserService, ApiError } from '@/services/api';
 import { Project } from '@/data/dummyData';
 
 const ProjectManagementPage = () => {
@@ -17,12 +17,26 @@ const ProjectManagementPage = () => {
 
   // Load project statistics
   useEffect(() => {
-    const projects = projectService.getAll();
-    const totalAssignments = projects.reduce((sum, project) => sum + project.assignedUserIds.length, 0);
-    setProjectStats({
-      active: projects.length, // All projects are active by default in our system
-      totalAssignments: totalAssignments
-    });
+    const loadProjectStats = async () => {
+      try {
+        const projects = await ProjectService.getAllProjects();
+        // Calculate total assignments by summing assigned user IDs across all projects
+        const totalAssignments = projects.reduce((sum, project) => {
+          return sum + ((project as any).assigned_user_ids?.length || 0);
+        }, 0);
+        
+        setProjectStats({
+          active: projects.length, // All projects fetched are considered active
+          totalAssignments: totalAssignments
+        });
+      } catch (error) {
+        console.error('Error loading project stats:', error);
+        // Set default stats on error
+        setProjectStats({ active: 0, totalAssignments: 0 });
+      }
+    };
+
+    loadProjectStats();
   }, [refreshTrigger]);
 
   const handleAddProject = () => {
@@ -96,10 +110,11 @@ const ProjectManagementPage = () => {
 
             {/* Enhanced Table Container */}
             <div className="card-enhanced rounded-2xl overflow-hidden shadow-soft">
-              <ProjectManagementTable 
-                onEditProject={handleEditProject} 
-                refreshTrigger={refreshTrigger}
-              />
+                          <ProjectManagementTable 
+              onEditProject={handleEditProject} 
+              refreshTrigger={refreshTrigger}
+              onProjectDeleted={() => setRefreshTrigger(prev => prev + 1)}
+            />
             </div>
           </>
         )}
