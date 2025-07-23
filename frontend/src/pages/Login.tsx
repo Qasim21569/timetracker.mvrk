@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { Mail, Lock, LogIn, Chrome, Clock, Shield, User, Key, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, LogIn, Chrome, Clock, Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -126,37 +126,7 @@ const LoginPage = () => {
               </Button>
             </form>
 
-            {/* Enhanced Development Credentials */}
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 space-y-3">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-1.5 rounded-lg">
-                  <Key className="h-4 w-4 text-white" />
-                </div>
-                <span className="font-semibold text-amber-800">Development Credentials</span>
-              </div>
-              
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2 p-2 bg-white/60 rounded-lg border border-amber-200">
-                  <Shield className="h-4 w-4 text-purple-500" />
-                  <div>
-                    <span className="font-medium text-slate-700">Admin:</span>
-                    <code className="ml-2 bg-slate-100 px-2 py-1 rounded text-slate-600">admin@example.com</code>
-                    <span className="mx-1 text-slate-400">/</span>
-                    <code className="bg-slate-100 px-2 py-1 rounded text-slate-600">admin123</code>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2 p-2 bg-white/60 rounded-lg border border-amber-200">
-                  <User className="h-4 w-4 text-blue-500" />
-                  <div>
-                    <span className="font-medium text-slate-700">User:</span>
-                    <code className="ml-2 bg-slate-100 px-2 py-1 rounded text-slate-600">test@example.com</code>
-                    <span className="mx-1 text-slate-400">/</span>
-                    <code className="bg-slate-100 px-2 py-1 rounded text-slate-600">testpass123</code>
-                  </div>
-                </div>
-              </div>
-            </div>
+
           </CardContent>
 
           {/* Enhanced Footer */}

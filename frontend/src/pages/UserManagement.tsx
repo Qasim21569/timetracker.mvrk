@@ -23,10 +23,10 @@ const UserManagementPage = () => {
         const allUsers = await UserService.getAllUsers();
         const adminUsers = allUsers.filter(user => user.role === 'admin');
         
-        setUserStats({
+    setUserStats({
           active: allUsers.length, // Total users
           total: adminUsers.length // Admin users
-        });
+    });
       } catch (error) {
         console.error('Error loading user stats:', error);
         // Set default stats on error
@@ -107,11 +107,11 @@ const UserManagementPage = () => {
           <>
             {/* Enhanced Table Container */}
             <div className="card-enhanced rounded-2xl overflow-hidden shadow-soft">
-                          <UserManagementTable 
-              onEditUser={handleEditUser} 
-              refreshTrigger={refreshTrigger}
+              <UserManagementTable 
+                onEditUser={handleEditUser} 
+                refreshTrigger={refreshTrigger}
               onUserDeleted={() => setRefreshTrigger(prev => prev + 1)}
-            />
+              />
             </div>
           </>
         )}

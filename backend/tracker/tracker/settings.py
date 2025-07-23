@@ -54,9 +54,30 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# CORS Settings
-CORS_ALLOW_ALL_ORIGINS = True  # Only for development!
+# CORS Settings for Production
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000", 
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    # Production Vercel frontend URL
+    "https://timetrackermvrk.vercel.app",
+]
+
+# For development only - comment out in production
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+
 CORS_ALLOW_CREDENTIALS = True
+
+# CSRF Settings for cross-origin requests
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173", 
+    "http://127.0.0.1:5173",
+    # Production Vercel frontend URL
+    "https://timetrackermvrk.vercel.app",
+]
 
 # Authentication Backends
 AUTHENTICATION_BACKENDS = [

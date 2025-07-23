@@ -67,7 +67,7 @@ const ProjectManagementTable = ({ onEditProject, refreshTrigger, onProjectDelete
     setIsDeleting(projectId);
     try {
       await ProjectService.deleteProject(projectId);
-      loadProjectsAndUsers(); // Refresh the list
+        loadProjectsAndUsers(); // Refresh the list
       onProjectDeleted?.(); // Notify parent to update statistics
     } catch (error) {
       console.error('Error deleting project:', error);

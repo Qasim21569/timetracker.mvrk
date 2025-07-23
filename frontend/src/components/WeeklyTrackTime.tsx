@@ -383,7 +383,7 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
           <div className="text-lg text-gray-600">Loading weekly data...</div>
         </div>
       ) : (
-        <div className="overflow-x-auto border rounded-lg">
+      <div className="overflow-x-auto border rounded-lg">
         <div className="min-w-[800px]">
           <table className="w-full">
             <thead className="sticky top-0 bg-blue-600 text-white z-10">

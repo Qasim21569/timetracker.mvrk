@@ -1,8 +1,10 @@
 // API service layer for Time Tracker application
 import { User, Project, TimeEntry, UserRole } from '@/data/dummyData';
 
-// Base configuration
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+// Base configuration - Environment-based API URL
+const API_BASE_URL = typeof __API_BASE_URL__ !== 'undefined' 
+  ? __API_BASE_URL__ 
+  : 'https://kwcow8kok4s448sw4s8wo8cc.5.78.137.10.sslip.io/api';
 
 // Error handling utility
 export class ApiError extends Error {

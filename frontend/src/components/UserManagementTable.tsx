@@ -78,7 +78,7 @@ const UserManagementTable = ({ onEditUser, refreshTrigger, onUserDeleted }: User
         description: `${userToDelete?.name || 'User'} has been removed from the system.`
       });
       
-      loadUsers(); // Refresh the list
+        loadUsers(); // Refresh the list
       onUserDeleted?.(); // Notify parent to update statistics
     } catch (error) {
       console.error('Error deleting user:', error);

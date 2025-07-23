@@ -202,7 +202,7 @@ const MonthlyTrackTime: React.FC<MonthlyTrackTimeProps> = ({ onViewChange }) => 
           <div className="text-lg text-gray-600">Loading monthly data...</div>
         </div>
       ) : (
-        <div className="border rounded-lg overflow-hidden bg-white">
+      <div className="border rounded-lg overflow-hidden bg-white">
         {/* Calendar Header - Days of week */}
         <div className="grid grid-cols-7 bg-blue-600 text-white">
           {weekDays.map(day => (
@@ -390,7 +390,7 @@ const DailyTrackTimeEmbedded: React.FC<DailyTrackTimeEmbeddedProps> = ({ selecte
           <div className="text-gray-600">Loading daily data...</div>
         </div>
       ) : (
-        <div className="overflow-auto max-h-[400px] border rounded-lg">
+      <div className="overflow-auto max-h-[400px] border rounded-lg">
         <table className="w-full">
           <thead className="sticky top-0 bg-blue-600 text-white z-10">
             <tr>

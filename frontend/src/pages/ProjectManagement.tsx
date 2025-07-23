@@ -25,10 +25,10 @@ const ProjectManagementPage = () => {
           return sum + ((project as any).assigned_user_ids?.length || 0);
         }, 0);
         
-        setProjectStats({
+    setProjectStats({
           active: projects.length, // All projects fetched are considered active
-          totalAssignments: totalAssignments
-        });
+      totalAssignments: totalAssignments
+    });
       } catch (error) {
         console.error('Error loading project stats:', error);
         // Set default stats on error
@@ -110,11 +110,11 @@ const ProjectManagementPage = () => {
 
             {/* Enhanced Table Container */}
             <div className="card-enhanced rounded-2xl overflow-hidden shadow-soft">
-                          <ProjectManagementTable 
-              onEditProject={handleEditProject} 
-              refreshTrigger={refreshTrigger}
+              <ProjectManagementTable 
+                onEditProject={handleEditProject} 
+                refreshTrigger={refreshTrigger}
               onProjectDeleted={() => setRefreshTrigger(prev => prev + 1)}
-            />
+              />
             </div>
           </>
         )}
