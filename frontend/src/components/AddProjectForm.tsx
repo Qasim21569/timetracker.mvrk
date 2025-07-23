@@ -11,9 +11,10 @@ import { toast } from '@/hooks/use-toast';
 interface AddProjectFormProps {
   onClose: () => void;
   onProjectAdded?: () => void;
+  refreshTrigger?: number; // To refresh users when parent updates
 }
 
-const AddProjectForm = ({ onClose, onProjectAdded }: AddProjectFormProps) => {
+const AddProjectForm = ({ onClose, onProjectAdded, refreshTrigger }: AddProjectFormProps) => {
   const [projectName, setProjectName] = useState('');
   const [clientName, setClientName] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -30,8 +31,10 @@ const AddProjectForm = ({ onClose, onProjectAdded }: AddProjectFormProps) => {
     const loadUsers = async () => {
       try {
         setLoading(true);
+        // Force fresh data by adding timestamp to avoid caching
         const allUsers = await UserService.getAllUsers();
-    setUsers(allUsers);
+        console.log('Loaded users for project creation:', allUsers);
+        setUsers(allUsers);
       } catch (error) {
         console.error('Error loading users:', error);
         toast({
@@ -45,7 +48,7 @@ const AddProjectForm = ({ onClose, onProjectAdded }: AddProjectFormProps) => {
     };
 
     loadUsers();
-  }, []);
+  }, [refreshTrigger]); // Reload when refreshTrigger changes
 
   const moveToAssigned = () => {
     const usersToMove = selectedAvailableUserIds.filter(userId => !assignedUserIds.includes(userId));
@@ -229,6 +232,11 @@ const AddProjectForm = ({ onClose, onProjectAdded }: AddProjectFormProps) => {
             {/* User Assignment */}
             <div className="space-y-4">
               <Label className="text-base font-semibold">Team Assignment</Label>
+              {loading && (
+                <div className="text-center py-4 text-sm text-slate-600">
+                  Loading users... ({users.length} loaded so far)
+                </div>
+              )}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
               <div className="space-y-4">
                 <Label>Available Users</Label>

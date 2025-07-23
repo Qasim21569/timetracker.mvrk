@@ -153,7 +153,10 @@ export class UserService {
     if (filters?.role) params.append('role', filters.role);
     if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
     
-    if (params.toString()) endpoint += `?${params.toString()}`;
+    // Add cache-busting timestamp to ensure fresh data
+    params.append('_t', Date.now().toString());
+    
+    endpoint += `?${params.toString()}`;
     
     return apiClient.get<User[]>(endpoint);
   }
