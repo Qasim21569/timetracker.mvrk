@@ -62,6 +62,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     # Production Vercel frontend URL
     "https://timetrackermvrk.vercel.app",
+    # Production backend URL for Django admin
+    "https://kwcow8kok4s448sw4s8wo8cc.5.78.137.10.sslip.io",
 ]
 
 # For development only - comment out in production
@@ -77,6 +79,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:5173",
     # Production Vercel frontend URL
     "https://timetrackermvrk.vercel.app",
+    # Production backend URL for Django admin
+    "https://kwcow8kok4s448sw4s8wo8cc.5.78.137.10.sslip.io",
 ]
 
 # Authentication Backends
