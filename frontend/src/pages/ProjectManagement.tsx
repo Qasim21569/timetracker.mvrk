@@ -121,21 +121,19 @@ const ProjectManagementPage = () => {
 
         {currentView === 'add' && (
           <div className="card-enhanced rounded-2xl p-6 md:p-8">
-                        <AddProjectForm 
-              onClose={handleCloseForm} 
+            <AddProjectForm 
+              onClose={handleCloseForm}
               onProjectAdded={handleProjectAdded}
-              refreshTrigger={refreshTrigger}
             />
           </div>
         )}
 
         {currentView === 'edit' && selectedProject && (
           <div className="card-enhanced rounded-2xl p-6 md:p-8">
-                        <EditProjectForm 
+            <EditProjectForm 
               project={selectedProject} 
-              onClose={handleCloseForm} 
+              onClose={handleCloseForm}
               onProjectUpdated={handleProjectUpdated}
-              refreshTrigger={refreshTrigger}
             />
           </div>
         )}

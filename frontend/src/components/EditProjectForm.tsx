@@ -14,14 +14,12 @@ interface EditProjectFormProps {
   project: Project;
   onClose: () => void;
   onProjectUpdated?: () => void;
-  refreshTrigger?: number; // To refresh users when parent updates
 }
 
 const EditProjectForm: React.FC<EditProjectFormProps> = ({ 
   project, 
   onClose, 
-  onProjectUpdated,
-  refreshTrigger 
+  onProjectUpdated 
 }) => {
   const [projectName, setProjectName] = useState(project.name);
   const [clientName, setClientName] = useState(project.client);
@@ -48,9 +46,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
   useEffect(() => {
     const loadUsers = async () => {
       try {
-        // Force fresh data for project editing
-        const allUsers = await UserService.getAllUsers();
-        console.log('Loaded users for project editing:', allUsers);
+        const allUsers = await UserService.getAllUsers({ is_active: true });
         setUsers(allUsers);
         setError(null);
       } catch (err) {
@@ -59,7 +55,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
       }
     };
     loadUsers();
-  }, [refreshTrigger]); // Reload when refreshTrigger changes
+  }, []);
 
   const availableUsers = users.filter(user => !assignedUserIds.includes(user.id));
   const assignedUsers = users.filter(user => assignedUserIds.includes(user.id));

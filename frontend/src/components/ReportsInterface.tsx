@@ -46,7 +46,7 @@ const ReportsInterface = () => {
     const loadData = async () => {
       try {
         const [usersData, projectsData] = await Promise.all([
-          UserService.getAllUsers(),
+          UserService.getAllUsers({ is_active: true }),
           ProjectService.getAllProjects()
         ]);
 

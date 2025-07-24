@@ -33,7 +33,7 @@ const ProjectManagementTable = ({ onEditProject, refreshTrigger, onProjectDelete
       setError(null);
       const [allProjects, allUsers] = await Promise.all([
         ProjectService.getAllProjects(),
-        UserService.getAllUsers()
+        UserService.getAllUsers({ is_active: true })
       ]);
     setProjects(allProjects);
     setUsers(allUsers);

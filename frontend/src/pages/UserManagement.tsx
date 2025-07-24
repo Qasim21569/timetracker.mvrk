@@ -19,13 +19,15 @@ const UserManagementPage = () => {
   useEffect(() => {
     const loadUserStats = async () => {
       try {
-        // Get all users 
+        // Get all users (including inactive for total count)
         const allUsers = await UserService.getAllUsers();
-        const adminUsers = allUsers.filter(user => user.role === 'admin');
+        // Get only active users for active count
+        const activeUsers = await UserService.getAllUsers({ is_active: true });
+        const adminUsers = activeUsers.filter(user => user.role === 'admin');
         
     setUserStats({
-          active: allUsers.length, // Total users
-          total: adminUsers.length // Admin users
+          active: activeUsers.length, // Active users only
+          total: adminUsers.length // Active admin users
     });
       } catch (error) {
         console.error('Error loading user stats:', error);
