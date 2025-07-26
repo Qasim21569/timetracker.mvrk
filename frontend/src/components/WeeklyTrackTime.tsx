@@ -432,10 +432,10 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
                     </td>
                   ))}
                 </tr>
-              ))}
+                          ))}
             </tbody>
           </table>
-        </div>
+        )}
       </div>
       )}
 
@@ -466,9 +466,8 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
                 <div className="text-xs text-red-600">
                   ⚠️ Notes are required when you add hours to a project
                 </div>
-              )}
-            </div>
-          </div>
+                      )}
+      </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:justify-end sm:space-x-2">
             <Button 
               variant="outline" 

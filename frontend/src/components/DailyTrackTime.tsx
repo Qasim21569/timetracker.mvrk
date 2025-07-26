@@ -375,16 +375,27 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
 
       {/* Daily time tracking table */}
       <div className="overflow-auto border rounded-lg">
-        <table className="w-full">
-                  <thead className="sticky top-0 bg-blue-600 text-white z-10">
-          <tr>
-            <th className="text-left p-4 font-semibold w-1/4">Project</th>
-            <th className="text-center p-4 font-semibold w-1/6">Hours</th>
-            <th className="text-left p-4 font-semibold w-7/12">Notes</th>
-          </tr>
-        </thead>
-          <tbody>
-                          {projects.map((project, projectIndex) => (
+        {projects.length === 0 ? (
+          <div className="text-center py-12 px-6">
+            <div className="mb-4">
+              <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <span className="text-2xl">📋</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">No Projects Assigned</h3>
+              <p className="text-gray-500">You are not added to any projects yet. Please contact your administrator to get assigned to projects.</p>
+            </div>
+          </div>
+        ) : (
+          <table className="w-full">
+            <thead className="sticky top-0 bg-blue-600 text-white z-10">
+              <tr>
+                <th className="text-left p-4 font-semibold w-1/4">Project</th>
+                <th className="text-center p-4 font-semibold w-1/6">Hours</th>
+                <th className="text-left p-4 font-semibold w-7/12">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projects.map((project, projectIndex) => (
                 <tr key={project.id} className={projectIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                   <td className="p-4 font-medium w-1/4">{project.name}</td>
                   <td className="p-4 w-1/6 text-center">
@@ -423,8 +434,9 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
                   </td>
                 </tr>
               ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Save status messages - moved outside and below the container */}

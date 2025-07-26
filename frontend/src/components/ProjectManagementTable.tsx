@@ -82,7 +82,8 @@ const ProjectManagementTable = ({ onEditProject, refreshTrigger, onProjectDelete
   };
 
   const getUserNameById = (userId: string): string => {
-    const user = users.find(u => u.id === userId);
+    // Handle both string and number ID formats
+    const user = users.find(u => u.id === userId || u.id === String(userId) || String(u.id) === String(userId));
     return user ? user.name : 'Unknown User';
   };
 

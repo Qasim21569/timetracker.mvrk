@@ -57,8 +57,16 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
     loadUsers();
   }, []);
 
-  const availableUsers = users.filter(user => !assignedUserIds.includes(user.id));
-  const assignedUsers = users.filter(user => assignedUserIds.includes(user.id));
+  const availableUsers = users.filter(user => 
+    !assignedUserIds.includes(user.id) && 
+    !assignedUserIds.includes(String(user.id)) &&
+    !assignedUserIds.some(id => String(id) === String(user.id))
+  );
+  const assignedUsers = users.filter(user => 
+    assignedUserIds.includes(user.id) || 
+    assignedUserIds.includes(String(user.id)) ||
+    assignedUserIds.some(id => String(id) === String(user.id))
+  );
 
   const moveToAssigned = () => {
     const usersToMove = selectedAvailableUserIds.filter(userId => !assignedUserIds.includes(userId));
