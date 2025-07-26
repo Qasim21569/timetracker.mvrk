@@ -107,24 +107,13 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
       );
       
       if (existingEntry) {
-        // Update existing entry
-        const response = await fetch(`http://localhost:8000/api/hours/${(existingEntry as any).id}/`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Token ${localStorage.getItem('auth_token')}`
-          },
-          body: JSON.stringify({
-            project: parseInt(projectId),
-            date: dateString,
-            hours: hours,
-            note: existingProject?.notes || ''
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to update time entry');
-        }
+        // Update existing entry using proper API service
+        await TimeTrackingService.updateTimeEntry((existingEntry as any).id, {
+          project: parseInt(projectId),
+          date: dateString,
+          hours: hours,
+          note: existingProject?.notes || ''
+        } as any);
       } else {
         // Create new entry
         await TimeTrackingService.createTimeEntry({
@@ -137,6 +126,12 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
       
     } catch (error) {
       console.error('Failed to save hours:', error);
+      setSavingStatus(prev => ({ ...prev, [projectId]: 'error' }));
+      
+      // Auto-hide error status after 5 seconds
+      setTimeout(() => {
+        setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
+      }, 5000);
     }
   };
 
@@ -161,24 +156,13 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
       );
       
       if (existingEntry) {
-        // Update existing entry - call custom API update
-        const response = await fetch(`http://localhost:8000/api/hours/${(existingEntry as any).id}/`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Token ${localStorage.getItem('auth_token')}`
-          },
-          body: JSON.stringify({
-            project: parseInt(projectId),
-            date: dateString,
-            hours: existingProject?.hours || 0,
-            note: notes
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to update time entry');
-        }
+        // Update existing entry using proper API service
+        await TimeTrackingService.updateTimeEntry((existingEntry as any).id, {
+          project: parseInt(projectId),
+          date: dateString,
+          hours: existingProject?.hours || 0,
+          note: notes
+        } as any);
       } else {
         // Create new entry
         await TimeTrackingService.createTimeEntry({

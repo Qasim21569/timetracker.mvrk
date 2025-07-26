@@ -158,24 +158,13 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
       );
 
       if (existingEntry) {
-        // Update existing entry
-        const response = await fetch(`http://localhost:8000/api/hours/${(existingEntry as any).id}/`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Token ${localStorage.getItem('auth_token')}`
-          },
-          body: JSON.stringify({
-            project: parseInt(projectId),
-            date: dateString,
-            hours: hours,
-            note: notes
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to update time entry');
-        }
+        // Update existing entry using proper API service
+        await TimeTrackingService.updateTimeEntry((existingEntry as any).id, {
+          project: parseInt(projectId),
+          date: dateString,
+          hours: hours,
+          note: notes
+        } as any);
       } else if (hours > 0) {
         // Create new entry only if hours > 0
         await TimeTrackingService.createTimeEntry({
@@ -187,6 +176,7 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
       }
     } catch (error) {
       console.error('Failed to save time entry:', error);
+      // Note: Consider adding UI feedback for failed saves in future enhancement
     }
   };
 
