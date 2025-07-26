@@ -55,8 +55,8 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
         (project as any).assigned_user_ids?.includes(parseInt(user.id))
       );
     
-    // Get time entries for this user and date
-    const dateString = format(selectedDate, 'yyyy-MM-dd');
+      // Get time entries for this user and date
+      const dateString = format(selectedDate, 'yyyy-MM-dd');
       const timeEntries = await TimeTrackingService.getAllTimeEntries({
         date: dateString
       });
@@ -66,20 +66,20 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
         (entry as any).user === parseInt(user.id)
       );
     
-         // Create project entries with existing time data
-     const projectEntries: ProjectEntry[] = userProjects.map(project => {
+      // Create project entries with existing time data
+      const projectEntries: ProjectEntry[] = userProjects.map(project => {
         const existingEntry = userTimeEntries.find(entry => 
           String((entry as any).project) === String(project.id)
         );
-       return {
+        return {
           id: String(project.id),
-         name: project.name,
-         hours: Number(existingEntry?.hours || 0),
+          name: project.name,
+          hours: Number(existingEntry?.hours || 0),
           notes: (existingEntry as any)?.note || '' // Note: backend uses 'note' not 'notes'
-       };
-     });
+        };
+      });
 
-    setProjects(projectEntries);
+      setProjects(projectEntries);
     } catch (error) {
       console.error('Error loading projects and time entries:', error);
     }
@@ -118,10 +118,10 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
         // Create new entry
         await TimeTrackingService.createTimeEntry({
           project: parseInt(projectId),
-        date: dateString,
-        hours: hours,
+          date: dateString,
+          hours: hours,
           note: existingProject?.notes || ''
-      });
+        });
       }
       
     } catch (error) {
@@ -312,28 +312,52 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
       <div className="flex flex-col space-y-3 md:space-y-4">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div className="flex space-x-2">
-            
+            <Button
+              variant="default"
+              size="sm"
+              className="text-xs md:text-sm"
+            >
+              Daily
+            </Button>
+            <Button
+              variant={onViewChange ? "outline" : "default"}
+              size="sm"
+              onClick={() => onViewChange('weekly')}
+              className="text-xs md:text-sm"
+            >
+              Weekly
+            </Button>
+            <Button
+              variant={onViewChange ? "outline" : "default"}
+              size="sm"
+              onClick={() => onViewChange('monthly')}
+              className="text-xs md:text-sm"
+            >
+              Monthly
+            </Button>
           </div>
-          
-          <div className="flex items-center justify-center sm:justify-end space-x-2">
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+          <div className="flex items-center space-x-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => navigateDate('prev')}
-              className="md:size-default flex-shrink-0"
+              className="flex items-center text-xs md:text-sm"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-3 w-3 md:h-4 md:w-4" />
+              Previous Day
             </Button>
-            
+
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-[220px] md:w-[280px] text-xs md:text-sm flex-shrink-0 justify-start">
-                  <Calendar className="mr-2 h-4 w-4 flex-shrink-0" />
-                  <span className="hidden sm:inline truncate">{format(selectedDate, 'EEEE, MMM. do, yyyy')}</span>
-                  <span className="sm:hidden truncate">{format(selectedDate, 'MMM. do, yyyy')}</span>
+                <Button variant="outline" size="sm" className="text-xs md:text-sm">
+                  <Calendar className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                  {format(selectedDate, 'EEEE, MMM dd, yyyy')}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
+              <PopoverContent className="w-auto p-0">
                 <CalendarComponent
                   mode="single"
                   selected={selectedDate}
@@ -342,32 +366,19 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
                 />
               </PopoverContent>
             </Popover>
-            
+
             <Button
               variant="outline"
               size="sm"
               onClick={() => navigateDate('next')}
-              className="md:size-default flex-shrink-0"
+              className="flex items-center text-xs md:text-sm"
             >
-              <ChevronRight className="h-4 w-4" />
+              Next Day
+              <ChevronRight className="h-3 w-3 md:h-4 md:w-4" />
             </Button>
           </div>
-        </div>
 
-        {/* View tabs */}
-        <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 sm:items-center">
-          <div className="flex space-x-2">
-            <Button variant="default" className="bg-blue-600 hover:bg-blue-700 text-white flex-1 sm:flex-none">
-              Daily
-            </Button>
-            <Button variant="outline" onClick={() => onViewChange('weekly')} className="hover:bg-blue-50 flex-1 sm:flex-none">
-              Weekly
-            </Button>
-            <Button variant="outline" onClick={() => onViewChange('monthly')} className="hover:bg-blue-50 flex-1 sm:flex-none">
-              Monthly
-            </Button>
-          </div>
-          <Badge variant="secondary" className="bg-purple-100 text-purple-800 sm:ml-auto text-center">
+          <Badge variant="secondary" className="text-xs md:text-sm py-1 px-2 md:px-3">
             Total Hours: {totalHours}
           </Badge>
         </div>
@@ -443,18 +454,17 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
       <div className="space-y-1">
         {projects.map((project) => {
           const statusDisplay = getSaveStatusDisplay(project.id);
-          return statusDisplay ? (
-            <div key={project.id} className="text-xs flex justify-between items-center">
-              <span className="font-medium text-gray-600">{project.name}:</span>
-              <span className={statusDisplay.className}>
-                {statusDisplay.text}
-              </span>
+          if (!statusDisplay) return null;
+          
+          return (
+            <div key={project.id} className={`text-xs ${statusDisplay.className} flex items-center justify-between bg-gray-50 p-2 rounded`}>
+              <span className="font-medium">{project.name}:</span>
+              <span>{statusDisplay.text}</span>
             </div>
-          ) : null;
+          );
         })}
       </div>
 
-      {/* Auto-save indicator */}
       <div className="text-sm text-gray-500 text-center">
         Changes are automatically saved
       </div>
