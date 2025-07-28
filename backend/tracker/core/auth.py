@@ -6,18 +6,39 @@ class EmailBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         UserModel = get_user_model()
         try:
-            # Try to fetch the user by email (username parameter actually contains email)
-            # Handle multiple users with same email by checking password for each
-            users = UserModel.objects.filter(email=username, is_active=True)
+            # Try to authenticate with either email or username
+            # The 'username' parameter can contain either email or actual username
+            user = None
             
-            for user in users:
-                if user.check_password(password):
-                    return user
+            # First, try to find user by email
+            if '@' in username:  # Likely an email
+                users = UserModel.objects.filter(email=username, is_active=True)
+                for user_obj in users:
+                    if user_obj.check_password(password):
+                        user = user_obj
+                        break
             
-            # If no active user found, return None
-            return None
+            # If no user found by email, try by username
+            if not user:
+                try:
+                    user_obj = UserModel.objects.get(username=username, is_active=True)
+                    if user_obj.check_password(password):
+                        user = user_obj
+                except UserModel.DoesNotExist:
+                    pass
             
-        except UserModel.DoesNotExist:
+            # If still no user found and the input doesn't contain @, try it as email too
+            # (in case someone has an email without @ due to data issues)
+            if not user and '@' not in username:
+                users = UserModel.objects.filter(email=username, is_active=True)
+                for user_obj in users:
+                    if user_obj.check_password(password):
+                        user = user_obj
+                        break
+            
+            return user
+            
+        except Exception as e:
             return None
         
     def get_user(self, user_id):

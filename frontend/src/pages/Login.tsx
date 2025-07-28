@@ -54,11 +54,11 @@ const LoginPage = () => {
           
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Enhanced Email Input */}
+              {/* Enhanced Email/Username Input */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                   <Mail className="h-4 w-4 text-slate-500" />
-                  Email
+                  Email or Username
                 </Label>
                 <div className="relative group">
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -66,8 +66,8 @@ const LoginPage = () => {
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-blue-500" />
                     <Input
                       id="email"
-                      type="email"
-                      placeholder="Enter your email"
+                      type="text"
+                      placeholder="Enter your email or username"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -75,6 +75,9 @@ const LoginPage = () => {
                     />
                   </div>
                 </div>
+                <p className="text-xs text-slate-500 flex items-center gap-1">
+                  💡 You can login with either your email address or username
+                </p>
               </div>
 
               {/* Enhanced Password Input */}
