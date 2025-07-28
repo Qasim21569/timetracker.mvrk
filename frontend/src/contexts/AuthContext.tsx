@@ -28,14 +28,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Check if user is already authenticated on app load
   useEffect(() => {
     const checkAuthStatus = async () => {
+      const token = localStorage.getItem('auth_token');
+      console.log('🔍 Checking auth status on page load. Token exists:', !!token);
+      
       if (AuthService.isAuthenticated()) {
         try {
+          console.log('📡 Validating token with backend...');
           const user = await AuthService.getCurrentUser();
+          console.log('✅ Token valid, user authenticated:', user.email);
           setCurrentUser(user);
         } catch (error) {
-          console.error('Failed to get current user:', error);
-          AuthService.logout(); // Clear invalid token
+          console.error('❌ Token validation failed:', error);
+          console.log('🧹 Clearing invalid token and redirecting to login');
+          
+          // Check if it's a network error vs authentication error
+          if (error instanceof Error && error.message.includes('Network error')) {
+            console.log('🌐 Network error detected, retrying in 2 seconds...');
+            // Retry once after a short delay for network issues
+            setTimeout(async () => {
+              try {
+                const user = await AuthService.getCurrentUser();
+                console.log('✅ Retry successful, user authenticated:', user.email);
+                setCurrentUser(user);
+                setLoading(false);
+              } catch (retryError) {
+                console.error('❌ Retry failed, clearing token:', retryError);
+                AuthService.logout();
+                setLoading(false);
+              }
+            }, 2000);
+            return; // Don't set loading to false yet
+          } else {
+            // Authentication error, clear token immediately
+            AuthService.logout();
+          }
         }
+      } else {
+        console.log('🚫 No token found, user not authenticated');
       }
       setLoading(false);
     };

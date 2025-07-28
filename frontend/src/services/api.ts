@@ -19,15 +19,34 @@ class TokenManager {
   private static readonly TOKEN_KEY = 'auth_token';
   
   static getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    try {
+      const token = localStorage.getItem(this.TOKEN_KEY);
+      if (token) {
+        console.log('🔑 Token retrieved from localStorage');
+      }
+      return token;
+    } catch (error) {
+      console.error('❌ Error accessing localStorage for token:', error);
+      return null;
+    }
   }
   
   static setToken(token: string): void {
-    localStorage.setItem(this.TOKEN_KEY, token);
+    try {
+      localStorage.setItem(this.TOKEN_KEY, token);
+      console.log('💾 Token saved to localStorage');
+    } catch (error) {
+      console.error('❌ Error saving token to localStorage:', error);
+    }
   }
   
   static removeToken(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
+    try {
+      localStorage.removeItem(this.TOKEN_KEY);
+      console.log('🗑️ Token removed from localStorage');
+    } catch (error) {
+      console.error('❌ Error removing token from localStorage:', error);
+    }
   }
 }
 
@@ -50,9 +69,11 @@ class ApiClient {
     };
 
     try {
+      console.log(`🌐 Making API request to: ${url}`);
       const response = await fetch(url, config);
       
       if (!response.ok) {
+        console.log(`❌ API request failed with status: ${response.status}`);
         const errorText = await response.text();
         let errorMessage = `HTTP ${response.status}`;
         
@@ -63,9 +84,15 @@ class ApiClient {
           errorMessage = errorText || errorMessage;
         }
         
+        // Special handling for 401 (Unauthorized) - likely token issue
+        if (response.status === 401) {
+          console.log('🔐 Unauthorized request - token may be invalid or expired');
+        }
+        
         throw new ApiError(response.status, errorMessage);
       }
 
+      console.log(`✅ API request successful to: ${url}`);
       // Handle empty responses
       const responseText = await response.text();
       return responseText ? JSON.parse(responseText) : null;
@@ -73,6 +100,7 @@ class ApiClient {
       if (error instanceof ApiError) {
         throw error;
       }
+      console.error(`🚨 Network error for ${url}:`, error);
       throw new ApiError(0, `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -125,6 +153,8 @@ export class AuthService {
   }
 
   static async getCurrentUser(): Promise<User> {
+    const token = TokenManager.getToken();
+    console.log('👤 Getting current user profile. Token exists:', !!token);
     return apiClient.get<User>('/profile/');
   }
 
