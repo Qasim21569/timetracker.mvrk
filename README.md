@@ -3,7 +3,7 @@
 ## Project Overview
 
 This is a Time Tracker application with a fully functional React frontend. The backend implementation is currently in development and will be added in future iterations.
-
+Deployment comment
 ## Current Project Structure
 
 ```
