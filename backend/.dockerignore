@@ -14,7 +14,19 @@ venv.bak/
 *.log
 local_settings.py
 db.sqlite3*
+*.sqlite3
+*.sqlite
+*.db
 media/
+
+# Development scripts and backups  
+backup_*/
+production_backup_*/
+test_*.py
+extract_production_data.py
+setup_production_db.py
+restore_*.py
+backup_data.py
 
 # IDE
 .vscode/
