@@ -167,12 +167,15 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Static files configuration for production
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
+# Only add STATICFILES_DIRS if the static directory exists
+static_dir = os.path.join(BASE_DIR, 'static')
+if os.path.exists(static_dir):
+    STATICFILES_DIRS = [static_dir]
+else:
+    STATICFILES_DIRS = []
 
 # Whitenoise configuration for serving static files in production
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
