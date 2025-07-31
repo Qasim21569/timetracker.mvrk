@@ -1,0 +1,554 @@
+[
+{
+  "model": "core.projectassignment",
+  "pk": 65,
+  "fields": {
+    "project": 31,
+    "user": 17,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:29:01.019Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 64,
+  "fields": {
+    "project": 31,
+    "user": 1,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:29:01.018Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 63,
+  "fields": {
+    "project": 30,
+    "user": 17,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:28:35.505Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 62,
+  "fields": {
+    "project": 30,
+    "user": 16,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:28:35.503Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 61,
+  "fields": {
+    "project": 30,
+    "user": 1,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:28:35.501Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 60,
+  "fields": {
+    "project": 29,
+    "user": 17,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:27:37.689Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 59,
+  "fields": {
+    "project": 29,
+    "user": 1,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:27:37.687Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 58,
+  "fields": {
+    "project": 28,
+    "user": 16,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:27:06.295Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 57,
+  "fields": {
+    "project": 28,
+    "user": 1,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:27:06.264Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 56,
+  "fields": {
+    "project": 27,
+    "user": 17,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:26:37.252Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 55,
+  "fields": {
+    "project": 27,
+    "user": 1,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:26:37.250Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 54,
+  "fields": {
+    "project": 26,
+    "user": 17,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:26:02.953Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 53,
+  "fields": {
+    "project": 26,
+    "user": 16,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:26:02.951Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 52,
+  "fields": {
+    "project": 26,
+    "user": 1,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:26:02.947Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 51,
+  "fields": {
+    "project": 25,
+    "user": 17,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:25:29.630Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 50,
+  "fields": {
+    "project": 25,
+    "user": 1,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:25:29.628Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 49,
+  "fields": {
+    "project": 24,
+    "user": 18,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:24:54.983Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 48,
+  "fields": {
+    "project": 24,
+    "user": 16,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:24:54.982Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 47,
+  "fields": {
+    "project": 24,
+    "user": 1,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:24:54.980Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 46,
+  "fields": {
+    "project": 23,
+    "user": 18,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:23:57.526Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 45,
+  "fields": {
+    "project": 23,
+    "user": 1,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:23:57.524Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 44,
+  "fields": {
+    "project": 22,
+    "user": 19,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:23:30.909Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 43,
+  "fields": {
+    "project": 22,
+    "user": 18,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:23:30.908Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 42,
+  "fields": {
+    "project": 21,
+    "user": 17,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:22:55.978Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 41,
+  "fields": {
+    "project": 21,
+    "user": 16,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:22:55.977Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 40,
+  "fields": {
+    "project": 21,
+    "user": 1,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:22:55.975Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 39,
+  "fields": {
+    "project": 20,
+    "user": 19,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:22:23.489Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 38,
+  "fields": {
+    "project": 19,
+    "user": 19,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:21:51.642Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 37,
+  "fields": {
+    "project": 19,
+    "user": 18,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:21:51.642Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 36,
+  "fields": {
+    "project": 19,
+    "user": 17,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:21:51.641Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 35,
+  "fields": {
+    "project": 19,
+    "user": 16,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:21:51.640Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 34,
+  "fields": {
+    "project": 19,
+    "user": 1,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:21:51.638Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 33,
+  "fields": {
+    "project": 18,
+    "user": 19,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:21:13.246Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 32,
+  "fields": {
+    "project": 18,
+    "user": 18,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:21:13.245Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 31,
+  "fields": {
+    "project": 18,
+    "user": 17,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:21:13.244Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 30,
+  "fields": {
+    "project": 18,
+    "user": 16,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:21:13.243Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 29,
+  "fields": {
+    "project": 18,
+    "user": 1,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:21:13.241Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 28,
+  "fields": {
+    "project": 17,
+    "user": 18,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:19:19.037Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 27,
+  "fields": {
+    "project": 17,
+    "user": 1,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:19:19.034Z",
+    "is_active": true,
+    "notes": "Initial project team assignment"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 26,
+  "fields": {
+    "project": 15,
+    "user": 17,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:18:36.757Z",
+    "is_active": true,
+    "notes": "Project team updated"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 25,
+  "fields": {
+    "project": 15,
+    "user": 16,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:18:36.755Z",
+    "is_active": true,
+    "notes": "Project team updated"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 24,
+  "fields": {
+    "project": 16,
+    "user": 18,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:18:28.023Z",
+    "is_active": true,
+    "notes": "Project team updated"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 23,
+  "fields": {
+    "project": 14,
+    "user": 18,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:18:22.456Z",
+    "is_active": true,
+    "notes": "Project team updated"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 22,
+  "fields": {
+    "project": 16,
+    "user": 1,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:06:23.135Z",
+    "is_active": true,
+    "notes": "Project team updated"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 21,
+  "fields": {
+    "project": 15,
+    "user": 1,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:06:01.267Z",
+    "is_active": true,
+    "notes": "Project team updated"
+  }
+},
+{
+  "model": "core.projectassignment",
+  "pk": 20,
+  "fields": {
+    "project": 14,
+    "user": 1,
+    "assigned_by": 1,
+    "assigned_date": "2025-07-29T12:05:18.123Z",
+    "is_active": true,
+    "notes": "Project team updated"
+  }
+}
+]

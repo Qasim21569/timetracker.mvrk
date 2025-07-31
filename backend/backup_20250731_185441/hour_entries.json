@@ -1,0 +1,13 @@
+[
+{
+  "model": "core.hourentry",
+  "pk": 13,
+  "fields": {
+    "user": 16,
+    "project": 15,
+    "date": "2025-07-29",
+    "hours": "0.00",
+    "note": "Work session"
+  }
+}
+]

@@ -1,0 +1,10 @@
+{
+  "backup_date": "2025-07-31T18:54:42.106391",
+  "backup_directory": "backup_20250731_185441",
+  "models_backed_up": {
+    "users": 5,
+    "projects": 18,
+    "hour_entries": 1,
+    "project_assignments": 46
+  }
+}
