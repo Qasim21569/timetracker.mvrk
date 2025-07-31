@@ -36,6 +36,9 @@ RUN chown -R django:django /app
 # Switch to django user
 USER django
 
+# Collect static files
+RUN python manage.py collectstatic --noinput
+
 # Expose port
 EXPOSE 8000
 
@@ -43,5 +46,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD python manage.py check --deploy || exit 1
 
-# Default command for development
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"] 
+# Production command using gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "tracker.wsgi:application"] 
