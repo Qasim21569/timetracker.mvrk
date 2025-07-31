@@ -105,16 +105,26 @@ WSGI_APPLICATION = 'tracker.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Database configuration - PostgreSQL ONLY (Local Development)
-# No SQLite fallback - hardcoded for local development
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'timetracker',
-        'USER': 'timetracker_user',
-        'PASSWORD': 'timetracker_pass',
-        'HOST': 'localhost',
-        'PORT': '5432',
+# Database configuration - PostgreSQL with environment variable support
+# Production will use DATABASE_URL, local development uses hardcoded values
+DATABASE_URL = config('DATABASE_URL', default=None)
+
+if DATABASE_URL:
+    # Production: Use PostgreSQL via DATABASE_URL from Coolify
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL)
+    }
+else:
+    # Local Development: Use local PostgreSQL
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'timetracker',
+            'USER': 'timetracker_user',
+            'PASSWORD': 'timetracker_pass',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
     }
 }
 
