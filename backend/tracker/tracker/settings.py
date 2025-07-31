@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from decouple import config, Csv
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-dfd@%i4g=of57mg6p78o9#^w=t2n1wb6)t^i77n$q&irklo+9c'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-dfd@%i4g=of57mg6p78o9#^w=t2n1wb6)t^i77n$q&irklo+9c')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'kwcow8kok4s448sw4s8wo8cc.5.78.137.10.sslip.io']
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost,kwcow8kok4s448sw4s8wo8cc.5.78.137.10.sslip.io', cast=Csv())
 
 
 # Application definition
@@ -55,16 +58,11 @@ MIDDLEWARE = [
 ]
 
 # CORS Settings for Production
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000", 
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    # Production Vercel frontend URL
-    "https://timetrackermvrk.vercel.app",
-    # Production backend URL for Django admin
-    "https://kwcow8kok4s448sw4s8wo8cc.5.78.137.10.sslip.io",
-]
+CORS_ALLOWED_ORIGINS = config(
+    'CORS_ALLOWED_ORIGINS',
+    default='http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,https://timetrackermvrk.vercel.app,https://kwcow8kok4s448sw4s8wo8cc.5.78.137.10.sslip.io',
+    cast=Csv()
+)
 
 # For development only - comment out in production
 CORS_ALLOW_ALL_ORIGINS = DEBUG
@@ -72,16 +70,11 @@ CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOW_CREDENTIALS = True
 
 # CSRF Settings for cross-origin requests
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5173", 
-    "http://127.0.0.1:5173",
-    # Production Vercel frontend URL
-    "https://timetrackermvrk.vercel.app",
-    # Production backend URL for Django admin
-    "https://kwcow8kok4s448sw4s8wo8cc.5.78.137.10.sslip.io",
-]
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,https://timetrackermvrk.vercel.app,https://kwcow8kok4s448sw4s8wo8cc.5.78.137.10.sslip.io',
+    cast=Csv()
+)
 
 # Authentication Backends
 AUTHENTICATION_BACKENDS = [
@@ -112,10 +105,16 @@ WSGI_APPLICATION = 'tracker.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# Database configuration - PostgreSQL ONLY (Local Development)
+# No SQLite fallback - hardcoded for local development
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'timetracker',
+        'USER': 'timetracker_user',
+        'PASSWORD': 'timetracker_pass',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 

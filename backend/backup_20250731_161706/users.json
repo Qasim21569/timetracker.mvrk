@@ -1,0 +1,21 @@
+[
+{
+  "model": "core.user",
+  "pk": 1,
+  "fields": {
+    "password": "!2X9HltSdw1zAVGTH3OMQ9nV92gqXazy6Z8lhiTOH",
+    "last_login": null,
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2025-07-31T10:46:06.299Z",
+    "email": "admin@test.com",
+    "is_admin": false,
+    "groups": [],
+    "user_permissions": []
+  }
+}
+]

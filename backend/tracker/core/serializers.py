@@ -16,7 +16,8 @@ class UserSerializer(serializers.ModelSerializer):
             'is_active', 'date_joined'
         ]
         extra_kwargs = {
-            'password': {'write_only': True},
+            'password': {'write_only': True, 'required': False},
+            'username': {'required': False},  # Allow username to be optional for updates
             'email': {'required': True},
             'first_name': {'required': True},
             'last_name': {'required': True},
@@ -34,9 +35,20 @@ class UserSerializer(serializers.ModelSerializer):
         """Validate password confirmation and other fields"""
         # Only validate password confirmation for creation
         if self.instance is None:  # Creating new user
-            password = attrs.get('password')
-            password_confirm = attrs.get('password_confirm')
+            # Username is required for new users
+            if not attrs.get('username'):
+                raise serializers.ValidationError({
+                    'username': 'Username is required when creating a new user.'
+                })
             
+            # Password is required for new users
+            password = attrs.get('password')
+            if not password:
+                raise serializers.ValidationError({
+                    'password': 'Password is required when creating a new user.'
+                })
+            
+            password_confirm = attrs.get('password_confirm')
             if not password_confirm:
                 raise serializers.ValidationError({
                     'password_confirm': 'Password confirmation is required.'

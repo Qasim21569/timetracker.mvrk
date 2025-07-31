@@ -1,0 +1,200 @@
+[
+{
+  "model": "core.project",
+  "pk": 14,
+  "fields": {
+    "name": "Skedaddle",
+    "client": "Skedaddle",
+    "owner": 1,
+    "start_date": "2025-07-29",
+    "end_date": "2029-12-29"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 15,
+  "fields": {
+    "name": "VFC SF Implementation",
+    "client": "Vacations For Canadians",
+    "owner": 1,
+    "start_date": "2025-07-29",
+    "end_date": "2027-12-29"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 16,
+  "fields": {
+    "name": "VFC Custom Dev",
+    "client": "Vacations For Canadians",
+    "owner": 1,
+    "start_date": "2025-07-29",
+    "end_date": "2029-11-29"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 17,
+  "fields": {
+    "name": "Armament",
+    "client": "Armament",
+    "owner": 1,
+    "start_date": "2025-07-29",
+    "end_date": "2029-10-29"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 18,
+  "fields": {
+    "name": "Internal Meetings",
+    "client": "MVRK",
+    "owner": 1,
+    "start_date": "2025-07-29",
+    "end_date": "2031-10-29"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 19,
+  "fields": {
+    "name": "Learning & Internal Work",
+    "client": "MVRK",
+    "owner": 1,
+    "start_date": "2025-07-29",
+    "end_date": "2031-11-29"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 20,
+  "fields": {
+    "name": "Web Dev",
+    "client": "MVRK",
+    "owner": 1,
+    "start_date": "2025-07-29",
+    "end_date": "2030-11-29"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 21,
+  "fields": {
+    "name": "Experience Point",
+    "client": "Experience Point",
+    "owner": 1,
+    "start_date": "2025-07-29",
+    "end_date": "2026-11-29"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 22,
+  "fields": {
+    "name": "Time Tracker Dev",
+    "client": "MVRK",
+    "owner": 1,
+    "start_date": "2025-07-29",
+    "end_date": "2029-02-28"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 23,
+  "fields": {
+    "name": "CWWM",
+    "client": "CWWM",
+    "owner": 1,
+    "start_date": "2025-07-29",
+    "end_date": "2030-06-29"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 24,
+  "fields": {
+    "name": "Yerba Madre",
+    "client": "Yerba Madre",
+    "owner": 1,
+    "start_date": "2025-07-31",
+    "end_date": "2028-11-30"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 25,
+  "fields": {
+    "name": "Trinity Support",
+    "client": "Trinity",
+    "owner": 1,
+    "start_date": "2025-07-29",
+    "end_date": "2027-10-29"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 26,
+  "fields": {
+    "name": "CPCEF",
+    "client": "CPCEF",
+    "owner": 1,
+    "start_date": "2025-07-30",
+    "end_date": "2025-09-30"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 27,
+  "fields": {
+    "name": "CMSG",
+    "client": "CMSG",
+    "owner": 1,
+    "start_date": "2025-07-31",
+    "end_date": "2028-10-31"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 28,
+  "fields": {
+    "name": "Credit Gnomes",
+    "client": "Credit Gnomes",
+    "owner": 1,
+    "start_date": "2025-07-29",
+    "end_date": "2027-11-29"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 29,
+  "fields": {
+    "name": "Lynch Carpenter",
+    "client": "Lynch Carpenter",
+    "owner": 1,
+    "start_date": "2025-07-29",
+    "end_date": "2029-07-29"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 30,
+  "fields": {
+    "name": "POS Support",
+    "client": "POS",
+    "owner": 1,
+    "start_date": "2025-08-01",
+    "end_date": "2029-06-01"
+  }
+},
+{
+  "model": "core.project",
+  "pk": 31,
+  "fields": {
+    "name": "NuServe",
+    "client": "NuServe",
+    "owner": 1,
+    "start_date": "2025-08-01",
+    "end_date": "2027-10-01"
+  }
+}
+]

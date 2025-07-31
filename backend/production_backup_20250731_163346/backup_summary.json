@@ -1,0 +1,12 @@
+{
+  "backup_date": "2025-07-31T16:33:46.482746",
+  "backup_directory": "production_backup_20250731_163346",
+  "source": "Production SQLite Database",
+  "database_file": "C:\\Users\\qasim\\OneDrive\\Desktop\\MVRK Dev\\Time Tracker\\db.sqlite3",
+  "models_backed_up": {
+    "users": 5,
+    "projects": 18,
+    "hour_entries": 1,
+    "project_assignments": 46
+  }
+}
