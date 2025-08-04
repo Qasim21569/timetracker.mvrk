@@ -16,6 +16,9 @@ interface ProjectEntry {
   name: string;
   weeklyHours: { [dayIndex: number]: number };
   weeklyNotes: { [dayIndex: number]: string };
+  status?: 'active' | 'inactive' | 'not_started' | 'no_dates';
+  hasDateIssue?: boolean;
+  validDays?: { [dayIndex: number]: boolean }; // Track which days are valid for time logging
 }
 
 interface NotesDialogState {
@@ -44,6 +47,20 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
   const [projects, setProjects] = useState<ProjectEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const { currentUser: user } = useAuth();
+
+  // Helper function to check if a project was active on a specific date
+  const isProjectActiveOnDate = (project: any, date: Date): boolean => {
+    const dateString = format(date, 'yyyy-MM-dd');
+    const startDate = project.start_date;
+    const endDate = project.end_date;
+    
+    // If no dates are set, allow time logging but show warning
+    if (!startDate || !endDate) {
+      return true; // Will show warning in UI
+    }
+    
+    return dateString >= startDate && dateString <= endDate;
+  };
   
   // Load user's projects and time entries for the week
   useEffect(() => {
@@ -83,28 +100,40 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
       const projectEntries: ProjectEntry[] = userProjects.map(project => {
         const weeklyHours: { [dayIndex: number]: number } = {};
         const weeklyNotes: { [dayIndex: number]: string } = {};
+        const validDays: { [dayIndex: number]: boolean } = {};
+        const hasDateIssue = !(project as any).start_date || !(project as any).end_date;
         
         // Initialize all 7 days
         for (let i = 0; i < 7; i++) {
-          const dayDate = format(addDays(weekStart, i), 'yyyy-MM-dd');
+          const dayDate = addDays(weekStart, i);
+          const dayDateString = format(dayDate, 'yyyy-MM-dd');
           const dayEntry = userTimeEntries.find(entry => 
             String((entry as any).project) === String(project.id) && 
-            (entry as any).date === dayDate
+            (entry as any).date === dayDateString
           );
           
           weeklyHours[i] = Number(dayEntry?.hours || 0);
           weeklyNotes[i] = (dayEntry as any)?.note || '';
+          validDays[i] = isProjectActiveOnDate(project, dayDate);
         }
         
         return {
           id: String(project.id),
           name: project.name,
           weeklyHours,
-          weeklyNotes
+          weeklyNotes,
+          status: (project as any).status,
+          hasDateIssue: hasDateIssue,
+          validDays: validDays
         };
       });
 
-      setProjects(projectEntries);
+      // Only show projects that have at least one valid day in the week
+      const validProjectEntries = projectEntries.filter(project => 
+        project.hasDateIssue || Object.values(project.validDays || {}).some(valid => valid)
+      );
+
+      setProjects(validProjectEntries);
     } catch (error) {
       console.error('Error loading weekly data:', error);
     } finally {

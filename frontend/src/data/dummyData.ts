@@ -38,6 +38,8 @@ export interface Project {
   startDate?: string; // YYYY-MM-DD format
   endDate?: string; // YYYY-MM-DD format
   assignedUserIds: string[];
+  is_active?: boolean;
+  status?: 'not_started' | 'active' | 'inactive' | 'no_dates';
 }
 
 export const dummyProjects: Project[] = [

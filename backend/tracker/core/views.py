@@ -52,6 +52,19 @@ class ProjectListView(generics.ListCreateAPIView):
         ).distinct()
 
     def perform_create(self, serializer):
+        start_date = serializer.validated_data.get('start_date')
+        end_date = serializer.validated_data.get('end_date')
+        
+        # Validate that both start_date and end_date are provided
+        if not start_date or not end_date:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError("Both start_date and end_date are required for project creation.")
+        
+        # Validate that start_date is not after end_date
+        if start_date > end_date:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError("Start date cannot be after end date.")
+        
         serializer.save(owner=self.request.user)
 
 class HourEntryListView(generics.ListCreateAPIView):
@@ -93,17 +106,25 @@ class HourEntryListView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         user = self.request.user
         project = serializer.validated_data.get('project')
+        entry_date = serializer.validated_data.get('date')
         
         # Validate that user can log time for this project
-        if not user.is_admin:
-            from django.db.models import Q
-            accessible_projects = Project.objects.filter(
-                Q(owner=user) | Q(assignments__user=user, assignments__is_active=True)
-            ).distinct()
-            
-            if project not in accessible_projects:
-                from rest_framework.exceptions import PermissionDenied
-                raise PermissionDenied("You can only log time for projects you own or are assigned to.")
+        from django.db.models import Q
+        accessible_projects = Project.objects.filter(
+            Q(owner=user) | Q(assignments__user=user, assignments__is_active=True)
+        ).distinct()
+        
+        if project not in accessible_projects:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only log time for projects you own or are assigned to.")
+        
+        # Validate that project was active on the entry date
+        if not project.was_active_on_date(entry_date):
+            from rest_framework.exceptions import ValidationError
+            if not project.start_date or not project.end_date:
+                raise ValidationError("Cannot log time for projects without start and end dates. Please contact admin to set project dates.")
+            else:
+                raise ValidationError(f"Cannot log time for this date. Project '{project.name}' was only active from {project.start_date} to {project.end_date}.")
         
         serializer.save(user=user)
 
@@ -135,6 +156,22 @@ class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
         if user.is_admin:
             return Project.objects.all()
         return Project.objects.filter(owner=user)
+    
+    def perform_update(self, serializer):
+        start_date = serializer.validated_data.get('start_date', serializer.instance.start_date)
+        end_date = serializer.validated_data.get('end_date', serializer.instance.end_date)
+        
+        # Validate that both start_date and end_date are provided
+        if not start_date or not end_date:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError("Both start_date and end_date are required. Projects must have defined active periods.")
+        
+        # Validate that start_date is not after end_date
+        if start_date > end_date:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError("Start date cannot be after end date.")
+        
+        serializer.save()
 
 class HourEntryDetailView(generics.RetrieveUpdateDestroyAPIView):
     """Get, update, or delete a specific hour entry"""
@@ -148,18 +185,26 @@ class HourEntryDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_update(self, serializer):
         user = self.request.user
-        project = serializer.validated_data.get('project')
+        project = serializer.validated_data.get('project', serializer.instance.project)
+        entry_date = serializer.validated_data.get('date', serializer.instance.date)
         
         # Validate that user can log time for this project
-        if not user.is_admin and project:
-            from django.db.models import Q
-            accessible_projects = Project.objects.filter(
-                Q(owner=user) | Q(assignments__user=user, assignments__is_active=True)
-            ).distinct()
-            
-            if project not in accessible_projects:
-                from rest_framework.exceptions import PermissionDenied
-                raise PermissionDenied("You can only log time for projects you own or are assigned to.")
+        from django.db.models import Q
+        accessible_projects = Project.objects.filter(
+            Q(owner=user) | Q(assignments__user=user, assignments__is_active=True)
+        ).distinct()
+        
+        if project not in accessible_projects:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only log time for projects you own or are assigned to.")
+        
+        # Validate that project was active on the entry date
+        if not project.was_active_on_date(entry_date):
+            from rest_framework.exceptions import ValidationError
+            if not project.start_date or not project.end_date:
+                raise ValidationError("Cannot log time for projects without start and end dates. Please contact admin to set project dates.")
+            else:
+                raise ValidationError(f"Cannot log time for this date. Project '{project.name}' was only active from {project.start_date} to {project.end_date}.")
         
         serializer.save()
 

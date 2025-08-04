@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.exceptions import ValidationError
+from datetime import date
 
 # Create your models here.
 
@@ -19,6 +20,46 @@ class Project(models.Model):
         """Validate project dates"""
         if self.start_date and self.end_date and self.start_date > self.end_date:
             raise ValidationError('End date must be after start date')
+
+    @property
+    def is_active(self):
+        """
+        Check if project is currently active based on start and end dates.
+        Returns True if current date is between start_date and end_date (inclusive).
+        Returns False if dates are not set or project is outside date range.
+        """
+        if not self.start_date or not self.end_date:
+            return False
+        today = date.today()
+        return self.start_date <= today <= self.end_date
+
+    @property
+    def status(self):
+        """
+        Get project status: 'not_started', 'active', or 'inactive'
+        """
+        if not self.start_date or not self.end_date:
+            return 'no_dates'
+        
+        today = date.today()
+        if today < self.start_date:
+            return 'not_started'
+        elif today > self.end_date:
+            return 'inactive'
+        else:
+            return 'active'
+
+    def was_active_on_date(self, check_date):
+        """
+        Check if project was active on a specific date.
+        Args:
+            check_date (date): The date to check
+        Returns:
+            bool: True if project was active on the given date
+        """
+        if not self.start_date or not self.end_date:
+            return False
+        return self.start_date <= check_date <= self.end_date
 
     def __str__(self):
         return self.name

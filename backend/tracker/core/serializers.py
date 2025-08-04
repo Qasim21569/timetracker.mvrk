@@ -92,18 +92,21 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 class ProjectSerializer(serializers.ModelSerializer):
-    """Enhanced ProjectSerializer with assignment support"""
+    """Enhanced ProjectSerializer with assignment support and active status"""
     assigned_user_ids = serializers.SerializerMethodField()
     assigned_users = serializers.SerializerMethodField()
     owner_name = serializers.SerializerMethodField()
+    is_active = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
     
     class Meta:
         model = Project
         fields = [
             'id', 'name', 'client', 'owner', 'owner_name', 
-            'start_date', 'end_date', 'assigned_user_ids', 'assigned_users'
+            'start_date', 'end_date', 'assigned_user_ids', 'assigned_users',
+            'is_active', 'status'
         ]
-        read_only_fields = ['owner', 'assigned_user_ids', 'assigned_users', 'owner_name']
+        read_only_fields = ['owner', 'assigned_user_ids', 'assigned_users', 'owner_name', 'is_active', 'status']
     
     def get_assigned_user_ids(self, obj):
         """Return list of assigned user IDs for frontend compatibility"""
@@ -125,6 +128,14 @@ class ProjectSerializer(serializers.ModelSerializer):
     def get_owner_name(self, obj):
         """Return owner's full name"""
         return f"{obj.owner.first_name} {obj.owner.last_name}".strip()
+
+    def get_is_active(self, obj):
+        """Return whether the project is currently active"""
+        return obj.is_active
+
+    def get_status(self, obj):
+        """Return project status: 'not_started', 'active', 'inactive', or 'no_dates'"""
+        return obj.status
 
 
 class ProjectAssignmentSerializer(serializers.ModelSerializer):

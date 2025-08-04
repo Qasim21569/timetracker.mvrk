@@ -232,7 +232,12 @@ export class ProjectService {
     return apiClient.post<Project>('/projects/', projectData);
   }
 
-  static async updateProject(id: string | number, projectData: Partial<Project>): Promise<Project> {
+  static async updateProject(id: string | number, projectData: {
+    name?: string;
+    client?: string;
+    start_date?: string;
+    end_date?: string;
+  }): Promise<Project> {
     return apiClient.put<Project>(`/projects/${id}/`, projectData);
   }
 

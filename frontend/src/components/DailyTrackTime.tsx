@@ -17,6 +17,8 @@ interface ProjectEntry {
   name: string;
   hours: number;
   notes: string;
+  status?: 'active' | 'inactive' | 'not_started' | 'no_dates';
+  hasDateIssue?: boolean;
 }
 
 interface DailyTrackTimeProps {
@@ -36,6 +38,20 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
   const [projects, setProjects] = useState<ProjectEntry[]>([]);
   const { currentUser: user } = useAuth();
 
+  // Helper function to check if a project was active on a specific date
+  const isProjectActiveOnDate = (project: any, date: Date): boolean => {
+    const dateString = format(date, 'yyyy-MM-dd');
+    const startDate = project.start_date;
+    const endDate = project.end_date;
+    
+    // If no dates are set, allow time logging but show warning
+    if (!startDate || !endDate) {
+      return true; // Will show warning in UI
+    }
+    
+    return dateString >= startDate && dateString <= endDate;
+  };
+
   // Load user's projects and time entries
   useEffect(() => {
     if (user) {
@@ -51,8 +67,13 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
       const allProjects = await ProjectService.getAllProjects();
       
       // Filter projects assigned to current user
-      const userProjects = allProjects.filter(project => 
+      const assignedProjects = allProjects.filter(project => 
         (project as any).assigned_user_ids?.includes(parseInt(user.id))
+      );
+      
+      // Further filter by projects that were active on the selected date
+      const userProjects = assignedProjects.filter(project => 
+        isProjectActiveOnDate(project, selectedDate)
       );
     
       // Get time entries for this user and date
@@ -71,11 +92,15 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
         const existingEntry = userTimeEntries.find(entry => 
           String((entry as any).project) === String(project.id)
         );
+        const hasDateIssue = !(project as any).start_date || !(project as any).end_date;
+        
         return {
           id: String(project.id),
           name: project.name,
           hours: Number(existingEntry?.hours || 0),
-          notes: (existingEntry as any)?.note || '' // Note: backend uses 'note' not 'notes'
+          notes: (existingEntry as any)?.note || '', // Note: backend uses 'note' not 'notes'
+          status: (project as any).status,
+          hasDateIssue: hasDateIssue
         };
       });
 
@@ -392,8 +417,16 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
               <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                 <span className="text-2xl">📋</span>
               </div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">No Projects Assigned</h3>
-              <p className="text-gray-500">You are not added to any projects yet. Please contact your administrator to get assigned to projects.</p>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">No Projects Available</h3>
+              <p className="text-gray-500 mb-2">
+                No projects are available for logging time on {format(selectedDate, 'MMM dd, yyyy')}.
+              </p>
+              <p className="text-gray-500 text-sm">
+                This could be because:
+                <br />• You are not assigned to any projects
+                <br />• No projects were active on this date
+                <br />• Projects need start and end dates to be set
+              </p>
             </div>
           </div>
         ) : (
@@ -408,7 +441,16 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
             <tbody>
               {projects.map((project, projectIndex) => (
                 <tr key={project.id} className={projectIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                  <td className="p-4 font-medium w-1/4">{project.name}</td>
+                  <td className="p-4 font-medium w-1/4">
+                    <div className="flex items-center gap-2">
+                      <span>{project.name}</span>
+                      {project.hasDateIssue && (
+                        <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+                          No Dates
+                        </Badge>
+                      )}
+                    </div>
+                  </td>
                   <td className="p-4 w-1/6 text-center">
                     <input
                       type="number"

@@ -89,6 +89,12 @@ const AddProjectForm = ({ onClose, onProjectAdded }: AddProjectFormProps) => {
     if (!clientName.trim()) {
       missingFields.push('Client Name');
     }
+    if (!startDate) {
+      missingFields.push('Project Start Date');
+    }
+    if (!endDate) {
+      missingFields.push('Project End Date');
+    }
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
       missingFields.push('End Date must be after Start Date');
     }
@@ -111,8 +117,8 @@ const AddProjectForm = ({ onClose, onProjectAdded }: AddProjectFormProps) => {
       const newProject = await ProjectService.createProject({
         name: projectName.trim(),
         client: clientName.trim(),
-        start_date: startDate || undefined,
-        end_date: endDate || undefined,
+        start_date: startDate,
+        end_date: endDate,
       });
 
       // Then assign users to the project
@@ -199,29 +205,35 @@ const AddProjectForm = ({ onClose, onProjectAdded }: AddProjectFormProps) => {
             {/* Project Timeline */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="startDate">Project Start Date</Label>
+                <Label htmlFor="startDate">
+                  Project Start Date <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="startDate"
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
+                  required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Optional - When the project starts
+                  Required - When the project starts
                 </p>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="endDate">Project End Date</Label>
+                <Label htmlFor="endDate">
+                  Project End Date <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="endDate"
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   min={startDate || undefined}
+                  required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Optional - Expected project completion date
+                  Required - Expected project completion date
                 </p>
               </div>
             </div>

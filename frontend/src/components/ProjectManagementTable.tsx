@@ -94,6 +94,38 @@ const ProjectManagementTable = ({ onEditProject, refreshTrigger, onProjectDelete
     return '📁';
   };
 
+  const getProjectStatusDisplay = (project: any) => {
+    const status = project.status || 'no_dates';
+    
+    switch (status) {
+      case 'active':
+        return {
+          label: 'Active',
+          className: 'status-active bg-emerald-50 text-emerald-700 border-emerald-200',
+          dotColor: 'bg-emerald-500'
+        };
+      case 'inactive':
+        return {
+          label: 'Inactive',
+          className: 'status-inactive bg-gray-50 text-gray-600 border-gray-200',
+          dotColor: 'bg-gray-400'
+        };
+      case 'not_started':
+        return {
+          label: 'Not Started',
+          className: 'status-not-started bg-blue-50 text-blue-700 border-blue-200',
+          dotColor: 'bg-blue-500'
+        };
+      case 'no_dates':
+      default:
+        return {
+          label: 'No Dates Set',
+          className: 'status-no-dates bg-yellow-50 text-yellow-700 border-yellow-200',
+          dotColor: 'bg-yellow-500'
+        };
+    }
+  };
+
   return (
     <div className="table-enhanced">
       <div className="overflow-x-auto">
@@ -123,6 +155,8 @@ const ProjectManagementTable = ({ onEditProject, refreshTrigger, onProjectDelete
           <TableBody>
             {sortedProjects.map((project, index) => {
               const assignedUserNames = ((project as any).assigned_user_ids || []).map((userId: any) => getUserNameById(String(userId)));
+              const statusDisplay = getProjectStatusDisplay(project);
+              const isInactive = project.status === 'inactive';
               
               return (
                 <TableRow 
@@ -130,6 +164,7 @@ const ProjectManagementTable = ({ onEditProject, refreshTrigger, onProjectDelete
                   className={`
                     table-row-enhanced border-b border-slate-100 group
                     ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}
+                    ${isInactive ? 'opacity-60' : ''}
                   `}
                 >
                   <TableCell className="font-medium text-xs md:text-sm py-4">
@@ -140,10 +175,11 @@ const ProjectManagementTable = ({ onEditProject, refreshTrigger, onProjectDelete
                         </span>
                       </div>
                       <div>
-                        <div className="font-semibold text-slate-800" title={project.name}>
+                        <div className={`font-semibold ${isInactive ? 'text-slate-500' : 'text-slate-800'}`} title={project.name}>
                           {project.name}
+                          {isInactive && <span className="ml-2 text-xs text-slate-400">(Inactive)</span>}
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div className={`text-xs ${isInactive ? 'text-slate-400' : 'text-slate-500'}`}>
                           {project.client}
                         </div>
                         <div className="text-xs text-slate-500 flex items-center gap-2 mt-1">
@@ -169,9 +205,9 @@ const ProjectManagementTable = ({ onEditProject, refreshTrigger, onProjectDelete
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className="status-indicator text-xs font-medium status-active">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                      Active
+                    <Badge className={`status-indicator text-xs font-medium border ${statusDisplay.className}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${statusDisplay.dotColor}`}></div>
+                      {statusDisplay.label}
                     </Badge>
                   </TableCell>
                   <TableCell>

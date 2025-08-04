@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
+
 import { ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ProjectService, UserService, ProjectAssignmentService, ApiError } from '@/services/api';
@@ -23,12 +23,12 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
 }) => {
   const [projectName, setProjectName] = useState(project.name);
   const [clientName, setClientName] = useState(project.client);
-  const [startDate, setStartDate] = useState(project.startDate || '');
-  const [endDate, setEndDate] = useState(project.endDate || '');
+  const [startDate, setStartDate] = useState(project.startDate || (project as any).start_date || '');
+  const [endDate, setEndDate] = useState(project.endDate || (project as any).end_date || '');
   const [assignedUserIds, setAssignedUserIds] = useState<string[]>([...(project.assignedUserIds || (project as any).assigned_user_ids?.map(String) || [])]);
   const [selectedAvailableUserIds, setSelectedAvailableUserIds] = useState<string[]>([]);
   const [selectedAssignedUserIds, setSelectedAssignedUserIds] = useState<string[]>([]);
-  const [isActive, setIsActive] = useState(true); // Project status
+
   const [users, setUsers] = useState<User[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,10 +37,9 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
   const originalValues = {
     projectName: project.name,
     clientName: project.client,
-    startDate: project.startDate || '',
-    endDate: project.endDate || '',
-    assignedUserIds: [...(project.assignedUserIds || (project as any).assigned_user_ids?.map(String) || [])],
-    isActive: true
+    startDate: project.startDate || (project as any).start_date || '',
+    endDate: project.endDate || (project as any).end_date || '',
+    assignedUserIds: [...(project.assignedUserIds || (project as any).assigned_user_ids?.map(String) || [])]
   };
 
   useEffect(() => {
@@ -119,6 +118,14 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
       errors.push('Client name must be 100 characters or less');
     }
     
+    if (!startDate) {
+      errors.push('Project start date is required');
+    }
+    
+    if (!endDate) {
+      errors.push('Project end date is required');
+    }
+    
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
       errors.push('End date must be after start date');
     }
@@ -151,8 +158,8 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
       const updatedProject = await ProjectService.updateProject(project.id, {
         name: projectName.trim(),
         client: clientName.trim(),
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
+        start_date: startDate,
+        end_date: endDate,
       });
 
       // Update project assignments if changed
@@ -211,7 +218,6 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
     setStartDate(originalValues.startDate);
     setEndDate(originalValues.endDate);
     setAssignedUserIds([...originalValues.assignedUserIds]);
-    setIsActive(originalValues.isActive);
     setSelectedAvailableUserIds([]);
     setSelectedAssignedUserIds([]);
     setError(null);
@@ -337,21 +343,26 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
             {/* Project Timeline */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="startDate">Project Start Date</Label>
+                <Label htmlFor="startDate">
+                  Project Start Date <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="startDate"
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   disabled={isSubmitting}
+                  required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Optional - When the project starts
+                  Required - When the project starts
                 </p>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="endDate">Project End Date</Label>
+                <Label htmlFor="endDate">
+                  Project End Date <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="endDate"
                   type="date"
@@ -359,9 +370,10 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                   onChange={(e) => setEndDate(e.target.value)}
                   min={startDate || undefined}
                   disabled={isSubmitting}
+                  required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Optional - Expected project completion date
+                  Required - When the project is expected to complete
                 </p>
               </div>
             </div>
@@ -411,22 +423,6 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                   'No users assigned yet'
                 )}
               </div>
-            </div>
-
-            {/* Project Status */}
-            <div className="flex items-center space-x-4 p-4 bg-muted rounded-lg">
-              <Label htmlFor="active-switch" className="text-sm font-medium">
-                Project Status
-              </Label>
-              <Switch
-                id="active-switch"
-                checked={isActive}
-                onCheckedChange={setIsActive}
-                disabled={isSubmitting}
-              />
-              <span className="text-sm text-muted-foreground">
-                {isActive ? 'Active' : 'Inactive'}
-              </span>
             </div>
 
             {/* Form Actions */}
