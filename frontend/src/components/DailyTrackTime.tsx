@@ -19,6 +19,7 @@ interface ProjectEntry {
   notes: string;
   status?: 'active' | 'inactive' | 'not_started' | 'no_dates';
   hasDateIssue?: boolean;
+  isReadOnly?: boolean;
 }
 
 interface DailyTrackTimeProps {
@@ -71,11 +72,6 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
         (project as any).assigned_user_ids?.includes(parseInt(user.id))
       );
       
-      // Further filter by projects that were active on the selected date
-      const userProjects = assignedProjects.filter(project => 
-        isProjectActiveOnDate(project, selectedDate)
-      );
-    
       // Get time entries for this user and date
       const dateString = format(selectedDate, 'yyyy-MM-dd');
       const timeEntries = await TimeTrackingService.getAllTimeEntries({
@@ -87,12 +83,31 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
         (entry as any).user === parseInt(user.id)
       );
     
+      // Get projects that are currently active on the selected date
+      const activeProjects = assignedProjects.filter(project => 
+        isProjectActiveOnDate(project, selectedDate)
+      );
+      
+      // Get projects that have existing time entries (even if inactive now)
+      const projectsWithEntries = assignedProjects.filter(project => 
+        userTimeEntries.some(entry => String((entry as any).project) === String(project.id))
+      );
+      
+      // Combine active projects and projects with existing entries (avoid duplicates)
+      const allRelevantProjects = [...activeProjects];
+      projectsWithEntries.forEach(project => {
+        if (!allRelevantProjects.find(p => p.id === project.id)) {
+          allRelevantProjects.push(project);
+        }
+      });
+    
       // Create project entries with existing time data
-      const projectEntries: ProjectEntry[] = userProjects.map(project => {
+      const projectEntries: ProjectEntry[] = allRelevantProjects.map(project => {
         const existingEntry = userTimeEntries.find(entry => 
           String((entry as any).project) === String(project.id)
         );
         const hasDateIssue = !(project as any).start_date || !(project as any).end_date;
+        const isCurrentlyActive = isProjectActiveOnDate(project, selectedDate);
         
         return {
           id: String(project.id),
@@ -100,7 +115,8 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
           hours: Number(existingEntry?.hours || 0),
           notes: (existingEntry as any)?.note || '', // Note: backend uses 'note' not 'notes'
           status: (project as any).status,
-          hasDateIssue: hasDateIssue
+          hasDateIssue: hasDateIssue,
+          isReadOnly: !isCurrentlyActive && !hasDateIssue // Read-only if inactive and has proper dates
         };
       });
 
