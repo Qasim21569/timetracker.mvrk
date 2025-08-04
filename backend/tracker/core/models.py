@@ -71,6 +71,10 @@ class HourEntry(models.Model):
     hours = models.DecimalField(max_digits=5, decimal_places=2)
     note = models.TextField(blank=True)
 
+    class Meta:
+        unique_together = ['user', 'project', 'date']  # Prevent duplicate time entries
+        ordering = ['-date']
+
     def __str__(self):
         return f"{self.user.username} - {self.project.name} - {self.date}"
 
