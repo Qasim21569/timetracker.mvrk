@@ -168,17 +168,23 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
       
       if (JSON.stringify(currentAssignedIds.sort()) !== JSON.stringify(newAssignedIds.sort())) {
         // Clear current assignments and set new ones
-        await ProjectAssignmentService.unassignUsersFromProject(
-          project.id, 
-          currentAssignedIds
-        );
+        console.log('Updating assignments:', { currentAssignedIds, newAssignedIds });
+        
+        if (currentAssignedIds.length > 0) {
+          const unassignResponse = await ProjectAssignmentService.unassignUsersFromProject(
+            project.id, 
+            currentAssignedIds
+          );
+          console.log('Unassign response:', unassignResponse);
+        }
         
         if (newAssignedIds.length > 0) {
-          await ProjectAssignmentService.assignUsersToProject(
+          const assignResponse = await ProjectAssignmentService.assignUsersToProject(
             project.id,
             newAssignedIds,
             'Project team updated'
           );
+          console.log('Assign response:', assignResponse);
         }
       }
 
