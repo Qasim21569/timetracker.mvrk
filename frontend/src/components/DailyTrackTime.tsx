@@ -129,25 +129,52 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
   // Calculate total hours for the day
   const totalHours = projects.reduce((sum, project) => sum + Number(project.hours || 0), 0);
 
-  // Save hours to API
+  // Track pending API calls to prevent race conditions
+  const pendingCalls = useRef<{ [key: string]: boolean }>({});
+
+  // Save hours to API with better error handling
   const saveHoursToDatabase = async (projectId: string, hours: number) => {
     if (!user) return;
     
+    // Prevent multiple simultaneous calls for same project
+    const callKey = `${projectId}-${format(selectedDate, 'yyyy-MM-dd')}`;
+    if (pendingCalls.current[callKey]) {
+      console.log('Skipping duplicate call for:', callKey);
+      return;
+    }
+    
     try {
+      pendingCalls.current[callKey] = true;
+      setSavingStatus(prev => ({ ...prev, [projectId]: 'saving' }));
+      
       const dateString = format(selectedDate, 'yyyy-MM-dd');
       const existingProject = projects.find(p => p.id === projectId);
       
-      // Check if time entry exists
-      const timeEntries = await TimeTrackingService.getAllTimeEntries({
+      // Check if time entry exists with retry logic
+      let timeEntries = await TimeTrackingService.getAllTimeEntries({
         date: dateString
       });
       
-      const existingEntry = timeEntries.find(entry => 
+      let existingEntry = timeEntries.find(entry => 
         String((entry as any).project) === String(projectId) && 
         (entry as any).user === parseInt(user.id)
       );
       
+      // If no existing entry found, wait a bit and retry (handles race condition)
+      if (!existingEntry) {
+        console.log('No existing entry found, waiting and retrying...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        timeEntries = await TimeTrackingService.getAllTimeEntries({
+          date: dateString
+        });
+        existingEntry = timeEntries.find(entry => 
+          String((entry as any).project) === String(projectId) && 
+          (entry as any).user === parseInt(user.id)
+        );
+      }
+      
       if (existingEntry) {
+        console.log('Updating existing entry:', existingEntry.id);
         // Update existing entry using proper API service
         await TimeTrackingService.updateTimeEntry((existingEntry as any).id, {
           project: parseInt(projectId),
@@ -156,6 +183,7 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
           note: existingProject?.notes || ''
         } as any);
       } else {
+        console.log('Creating new entry for project:', projectId);
         // Create new entry
         await TimeTrackingService.createTimeEntry({
           project: parseInt(projectId),
@@ -165,6 +193,8 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
         });
       }
       
+      setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
+      
     } catch (error) {
       console.error('Failed to save hours:', error);
       setSavingStatus(prev => ({ ...prev, [projectId]: 'error' }));
@@ -173,30 +203,55 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
       setTimeout(() => {
         setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
       }, 5000);
+    } finally {
+      // Clear pending call flag
+      pendingCalls.current[callKey] = false;
     }
   };
 
-  // Save notes to API with debouncing
+  // Save notes to API with debouncing and race condition protection
   const saveNotesToDatabase = async (projectId: string, notes: string) => {
     if (!user) return;
     
+    // Prevent multiple simultaneous calls for same project
+    const callKey = `${projectId}-${format(selectedDate, 'yyyy-MM-dd')}-notes`;
+    if (pendingCalls.current[callKey]) {
+      console.log('Skipping duplicate notes call for:', callKey);
+      return;
+    }
+    
     try {
+      pendingCalls.current[callKey] = true;
       setSavingStatus(prev => ({ ...prev, [projectId]: 'saving' }));
       
       const dateString = format(selectedDate, 'yyyy-MM-dd');
       const existingProject = projects.find(p => p.id === projectId);
       
-      // Check if time entry exists
-      const timeEntries = await TimeTrackingService.getAllTimeEntries({
+      // Check if time entry exists with retry logic
+      let timeEntries = await TimeTrackingService.getAllTimeEntries({
         date: dateString
       });
       
-      const existingEntry = timeEntries.find(entry => 
+      let existingEntry = timeEntries.find(entry => 
         String((entry as any).project) === String(projectId) && 
         (entry as any).user === parseInt(user.id)
       );
       
+      // If no existing entry found, wait a bit and retry (handles race condition)
+      if (!existingEntry) {
+        console.log('No existing entry found for notes, waiting and retrying...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        timeEntries = await TimeTrackingService.getAllTimeEntries({
+          date: dateString
+        });
+        existingEntry = timeEntries.find(entry => 
+          String((entry as any).project) === String(projectId) && 
+          (entry as any).user === parseInt(user.id)
+        );
+      }
+      
       if (existingEntry) {
+        console.log('Updating existing entry notes:', existingEntry.id);
         // Update existing entry using proper API service
         await TimeTrackingService.updateTimeEntry((existingEntry as any).id, {
           project: parseInt(projectId),
@@ -205,6 +260,7 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
           note: notes
         } as any);
       } else {
+        console.log('Creating new entry for notes, project:', projectId);
         // Create new entry
         await TimeTrackingService.createTimeEntry({
           project: parseInt(projectId),
@@ -230,6 +286,9 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
       setTimeout(() => {
         setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
       }, 5000);
+    } finally {
+      // Clear pending call flag
+      pendingCalls.current[callKey] = false;
     }
   };
 
