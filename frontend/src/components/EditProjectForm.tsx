@@ -186,6 +186,8 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
         title: "Success",
         description: `Project "${updatedProject.name}" has been updated successfully!`
       });
+      
+      // Force refresh of project data to get updated assigned_user_ids
       onProjectUpdated?.();
       onClose();
     } catch (err) {

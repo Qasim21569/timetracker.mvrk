@@ -312,6 +312,24 @@ const DailyTrackTimeEmbedded: React.FC<DailyTrackTimeEmbeddedProps> = ({ selecte
     }
   }, [user, selectedDate]);
 
+  // Helper function to check if project was active on the selected date
+  const isProjectActiveOnDate = (project: any, checkDate: Date): boolean => {
+    if (!(project as any).start_date || !(project as any).end_date) {
+      return false;
+    }
+    
+    const startDate = new Date((project as any).start_date);
+    const endDate = new Date((project as any).end_date);
+    const dateToCheck = new Date(checkDate);
+    
+    // Reset time to compare only dates
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
+    dateToCheck.setHours(12, 0, 0, 0);
+    
+    return dateToCheck >= startDate && dateToCheck <= endDate;
+  };
+
   const loadDailyData = async () => {
     if (!user) return;
 
@@ -320,8 +338,13 @@ const DailyTrackTimeEmbedded: React.FC<DailyTrackTimeEmbeddedProps> = ({ selecte
       
       // Get all projects assigned to current user
       const allProjects = await ProjectService.getAllProjects();
-      const userProjects = allProjects.filter(project => 
+      const assignedProjects = allProjects.filter(project => 
         (project as any).assigned_user_ids?.includes(parseInt(user.id))
+      );
+      
+      // Further filter by projects that were active on the selected date
+      const userProjects = assignedProjects.filter(project => 
+        isProjectActiveOnDate(project, selectedDate)
       );
 
       // Get time entries for this specific date
