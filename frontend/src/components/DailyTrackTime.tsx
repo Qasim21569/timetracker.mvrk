@@ -362,33 +362,53 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
 
   // Enhanced hour validation and processing
   const validateAndProcessHours = (inputValue: string): number => {
+    console.log('Input value received:', inputValue, 'Type:', typeof inputValue);
+    
     // Remove any non-numeric characters except decimal point
     const cleanValue = inputValue.replace(/[^0-9.]/g, '');
+    console.log('Cleaned value:', cleanValue);
     
     // Convert to number with proper decimal handling
     const parsedHours = parseFloat(cleanValue);
+    console.log('Parsed hours:', parsedHours);
     
     // Validate range (0 to 24 hours per day)
-    if (isNaN(parsedHours)) return 0;
-    if (parsedHours < 0) return 0;
-    if (parsedHours > 24) return 24;
+    if (isNaN(parsedHours)) {
+      console.log('NaN detected, returning 0');
+      return 0;
+    }
+    if (parsedHours < 0) {
+      console.log('Negative value detected, returning 0');
+      return 0;
+    }
+    if (parsedHours > 24) {
+      console.log('Value > 24 detected, returning 24');
+      return 24;
+    }
     
     // Round to 2 decimal places to match backend
-    return Math.round(parsedHours * 100) / 100;
+    const roundedHours = Math.round(parsedHours * 100) / 100;
+    console.log('Final rounded hours:', roundedHours);
+    return roundedHours;
   };
 
   const updateProjectHours = (projectId: string, hours: number) => {
+    console.log('updateProjectHours called with:', { projectId, hours, type: typeof hours });
+    
     const validHours = validateAndProcessHours(hours.toString());
+    console.log('Valid hours after processing:', validHours);
     
     // Update UI immediately
     setProjects(prev => prev.map(project => {
       if (project.id === projectId) {
+        console.log('Updating project hours in UI:', { projectId, oldHours: project.hours, newHours: validHours });
         return { ...project, hours: validHours };
       }
       return project;
     }));
     
     // Save to database
+    console.log('Calling saveHoursToDatabase with:', { projectId, validHours });
     saveHoursToDatabase(projectId, validHours);
   };
 
@@ -565,7 +585,14 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
                     <input
                       type="number"
                       value={project.hours || 0}
-                      onChange={(e) => updateProjectHours(project.id, validateAndProcessHours(e.target.value))}
+                      onChange={(e) => {
+                        console.log('Input onChange triggered:', { 
+                          value: e.target.value, 
+                          type: typeof e.target.value,
+                          projectId: project.id 
+                        });
+                        updateProjectHours(project.id, validateAndProcessHours(e.target.value));
+                      }}
                       className="w-20 text-center border rounded px-2 py-1 mx-auto"
                       min="0"
                       max="24"
