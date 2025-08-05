@@ -173,25 +173,39 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
         );
       }
       
-      if (existingEntry) {
-        console.log('Updating existing entry:', existingEntry.id);
-        // Update existing entry using proper API service
-        await TimeTrackingService.updateTimeEntry((existingEntry as any).id, {
-          project: parseInt(projectId),
-          date: dateString,
-          hours: hours,
-          note: existingProject?.notes || ''
-        } as any);
-      } else {
-        console.log('Creating new entry for project:', projectId);
-        // Create new entry
-        await TimeTrackingService.createTimeEntry({
-          project: parseInt(projectId),
-          date: dateString,
-          hours: hours,
-          note: existingProject?.notes || ''
-        });
-      }
+              if (existingEntry) {
+          if (hours === 0) {
+            console.log('Deleting existing entry (hours=0):', existingEntry.id);
+            // Delete entry when hours = 0
+            await TimeTrackingService.deleteTimeEntry((existingEntry as any).id);
+            // Reload projects to reflect deletion in UI
+            await loadProjectsAndTimeEntries();
+          } else {
+            console.log('Updating existing entry:', existingEntry.id);
+            // Update existing entry using proper API service
+            await TimeTrackingService.updateTimeEntry((existingEntry as any).id, {
+              project: parseInt(projectId),
+              date: dateString,
+              hours: hours,
+              note: existingProject?.notes || ''
+            } as any);
+          }
+        } else {
+          if (hours === 0) {
+            console.log('Skipping creation - hours=0 for project:', projectId);
+            // Don't create entry when hours = 0
+            return;
+          } else {
+            console.log('Creating new entry for project:', projectId);
+            // Create new entry
+            await TimeTrackingService.createTimeEntry({
+              project: parseInt(projectId),
+              date: dateString,
+              hours: hours,
+              note: existingProject?.notes || ''
+            });
+          }
+        }
       
       setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
       
@@ -260,14 +274,18 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
           note: notes
         } as any);
       } else {
-        console.log('Creating new entry for notes, project:', projectId);
-        // Create new entry
-        await TimeTrackingService.createTimeEntry({
-          project: parseInt(projectId),
-          date: dateString,
-          hours: existingProject?.hours || 0,
-          note: notes
-        });
+        // Only create new entry if there are hours to log
+        if ((existingProject?.hours || 0) > 0) {
+          console.log('Creating new entry for notes, project:', projectId);
+          await TimeTrackingService.createTimeEntry({
+            project: parseInt(projectId),
+            date: dateString,
+            hours: existingProject?.hours || 0,
+            note: notes
+          });
+        } else {
+          console.log('Skipping note creation - no hours to log for project:', projectId);
+        }
       }
       
       setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
@@ -342,8 +360,25 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
     }
   };
 
+  // Enhanced hour validation and processing
+  const validateAndProcessHours = (inputValue: string): number => {
+    // Remove any non-numeric characters except decimal point
+    const cleanValue = inputValue.replace(/[^0-9.]/g, '');
+    
+    // Convert to number with proper decimal handling
+    const parsedHours = parseFloat(cleanValue);
+    
+    // Validate range (0 to 24 hours per day)
+    if (isNaN(parsedHours)) return 0;
+    if (parsedHours < 0) return 0;
+    if (parsedHours > 24) return 24;
+    
+    // Round to 2 decimal places to match backend
+    return Math.round(parsedHours * 100) / 100;
+  };
+
   const updateProjectHours = (projectId: string, hours: number) => {
-    const validHours = Math.max(0, hours);
+    const validHours = validateAndProcessHours(hours.toString());
     
     // Update UI immediately
     setProjects(prev => prev.map(project => {
@@ -353,7 +388,7 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
       return project;
     }));
     
-    // Save to localStorage
+    // Save to database
     saveHoursToDatabase(projectId, validHours);
   };
 
@@ -530,9 +565,10 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
                     <input
                       type="number"
                       value={project.hours || 0}
-                      onChange={(e) => updateProjectHours(project.id, Number(e.target.value))}
+                      onChange={(e) => updateProjectHours(project.id, validateAndProcessHours(e.target.value))}
                       className="w-20 text-center border rounded px-2 py-1 mx-auto"
                       min="0"
+                      max="24"
                       step="0.5"
                     />
                   </td>
