@@ -129,60 +129,47 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
   // Calculate total hours for the day
   const totalHours = projects.reduce((sum, project) => sum + Number(project.hours || 0), 0);
 
-  // Track pending API calls to prevent race conditions
-  const pendingCalls = useRef<{ [key: string]: boolean }>({});
+  // Debounced save functions
+  const debouncedSaveHours = useRef<{ [key: string]: NodeJS.Timeout }>({});
+  const debouncedSaveNotes = useRef<{ [key: string]: NodeJS.Timeout }>({});
 
-  // Save hours to API with better error handling
+  // Save hours to API with debouncing
   const saveHoursToDatabase = async (projectId: string, hours: number) => {
     if (!user) return;
     
-    // Prevent multiple simultaneous calls for same project
-    const callKey = `${projectId}-${format(selectedDate, 'yyyy-MM-dd')}`;
-    if (pendingCalls.current[callKey]) {
-      console.log('Skipping duplicate call for:', callKey);
-      return;
+    const dateString = format(selectedDate, 'yyyy-MM-dd');
+    const existingProject = projects.find(p => p.id === projectId);
+    
+    // Clear existing timeout for this project
+    if (debouncedSaveHours.current[projectId]) {
+      clearTimeout(debouncedSaveHours.current[projectId]);
     }
     
-    try {
-      pendingCalls.current[callKey] = true;
-      setSavingStatus(prev => ({ ...prev, [projectId]: 'saving' }));
-      
-      const dateString = format(selectedDate, 'yyyy-MM-dd');
-      const existingProject = projects.find(p => p.id === projectId);
-      
-      // Check if time entry exists with retry logic
-      let timeEntries = await TimeTrackingService.getAllTimeEntries({
-        date: dateString
-      });
-      
-      let existingEntry = timeEntries.find(entry => 
-        String((entry as any).project) === String(projectId) && 
-        (entry as any).user === parseInt(user.id)
-      );
-      
-      // If no existing entry found, wait a bit and retry (handles race condition)
-      if (!existingEntry) {
-        console.log('No existing entry found, waiting and retrying...');
-        await new Promise(resolve => setTimeout(resolve, 500));
-        timeEntries = await TimeTrackingService.getAllTimeEntries({
+    // Set saving status immediately for better UX
+    setSavingStatus(prev => ({ ...prev, [projectId]: 'saving' }));
+    
+    // Debounce the actual save operation
+    debouncedSaveHours.current[projectId] = setTimeout(async () => {
+      try {
+        console.log('Debounced save triggered for project:', projectId, 'hours:', hours);
+        
+        // Get current time entries
+        const timeEntries = await TimeTrackingService.getAllTimeEntries({
           date: dateString
         });
-        existingEntry = timeEntries.find(entry => 
+        
+        const existingEntry = timeEntries.find(entry => 
           String((entry as any).project) === String(projectId) && 
           (entry as any).user === parseInt(user.id)
         );
-      }
-      
-              if (existingEntry) {
+        
+        if (existingEntry) {
           if (hours === 0) {
             console.log('Deleting existing entry (hours=0):', existingEntry.id);
-            // Delete entry when hours = 0
             await TimeTrackingService.deleteTimeEntry((existingEntry as any).id);
-            // Reload projects to reflect deletion in UI
             await loadProjectsAndTimeEntries();
           } else {
             console.log('Updating existing entry:', existingEntry.id);
-            // Update existing entry using proper API service
             await TimeTrackingService.updateTimeEntry((existingEntry as any).id, {
               project: parseInt(projectId),
               date: dateString,
@@ -193,11 +180,9 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
         } else {
           if (hours === 0) {
             console.log('Skipping creation - hours=0 for project:', projectId);
-            // Don't create entry when hours = 0
             return;
           } else {
             console.log('Creating new entry for project:', projectId);
-            // Create new entry
             await TimeTrackingService.createTimeEntry({
               project: parseInt(projectId),
               date: dateString,
@@ -206,108 +191,90 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
             });
           }
         }
-      
-      setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
-      
-    } catch (error) {
-      console.error('Failed to save hours:', error);
-      setSavingStatus(prev => ({ ...prev, [projectId]: 'error' }));
-      
-      // Auto-hide error status after 5 seconds
-      setTimeout(() => {
-        setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
-      }, 5000);
-    } finally {
-      // Clear pending call flag
-      pendingCalls.current[callKey] = false;
-    }
+        
+        setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
+        
+      } catch (error) {
+        console.error('Failed to save hours:', error);
+        setSavingStatus(prev => ({ ...prev, [projectId]: 'error' }));
+        
+        // Auto-hide error status after 5 seconds
+        setTimeout(() => {
+          setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
+        }, 5000);
+      }
+    }, 500); // 500ms debounce delay
   };
 
-  // Save notes to API with debouncing and race condition protection
+  // Save notes to API with debouncing
   const saveNotesToDatabase = async (projectId: string, notes: string) => {
     if (!user) return;
     
-    // Prevent multiple simultaneous calls for same project
-    const callKey = `${projectId}-${format(selectedDate, 'yyyy-MM-dd')}-notes`;
-    if (pendingCalls.current[callKey]) {
-      console.log('Skipping duplicate notes call for:', callKey);
-      return;
+    const dateString = format(selectedDate, 'yyyy-MM-dd');
+    const existingProject = projects.find(p => p.id === projectId);
+    
+    // Clear existing timeout for this project
+    if (debouncedSaveNotes.current[projectId]) {
+      clearTimeout(debouncedSaveNotes.current[projectId]);
     }
     
-    try {
-      pendingCalls.current[callKey] = true;
-      setSavingStatus(prev => ({ ...prev, [projectId]: 'saving' }));
-      
-      const dateString = format(selectedDate, 'yyyy-MM-dd');
-      const existingProject = projects.find(p => p.id === projectId);
-      
-      // Check if time entry exists with retry logic
-      let timeEntries = await TimeTrackingService.getAllTimeEntries({
-        date: dateString
-      });
-      
-      let existingEntry = timeEntries.find(entry => 
-        String((entry as any).project) === String(projectId) && 
-        (entry as any).user === parseInt(user.id)
-      );
-      
-      // If no existing entry found, wait a bit and retry (handles race condition)
-      if (!existingEntry) {
-        console.log('No existing entry found for notes, waiting and retrying...');
-        await new Promise(resolve => setTimeout(resolve, 500));
-        timeEntries = await TimeTrackingService.getAllTimeEntries({
+    // Set saving status immediately for better UX
+    setSavingStatus(prev => ({ ...prev, [projectId]: 'saving' }));
+    
+    // Debounce the actual save operation
+    debouncedSaveNotes.current[projectId] = setTimeout(async () => {
+      try {
+        console.log('Debounced notes save triggered for project:', projectId);
+        
+        // Get current time entries
+        const timeEntries = await TimeTrackingService.getAllTimeEntries({
           date: dateString
         });
-        existingEntry = timeEntries.find(entry => 
+        
+        const existingEntry = timeEntries.find(entry => 
           String((entry as any).project) === String(projectId) && 
           (entry as any).user === parseInt(user.id)
         );
-      }
-      
-      if (existingEntry) {
-        console.log('Updating existing entry notes:', existingEntry.id);
-        // Update existing entry using proper API service
-        await TimeTrackingService.updateTimeEntry((existingEntry as any).id, {
-          project: parseInt(projectId),
-          date: dateString,
-          hours: existingProject?.hours || 0,
-          note: notes
-        } as any);
-      } else {
-        // Only create new entry if there are hours to log
-        if ((existingProject?.hours || 0) > 0) {
-          console.log('Creating new entry for notes, project:', projectId);
-          await TimeTrackingService.createTimeEntry({
+        
+        if (existingEntry) {
+          console.log('Updating existing entry notes:', existingEntry.id);
+          await TimeTrackingService.updateTimeEntry((existingEntry as any).id, {
             project: parseInt(projectId),
             date: dateString,
             hours: existingProject?.hours || 0,
             note: notes
+          } as any);
+        } else if (existingProject?.hours && existingProject.hours > 0) {
+          console.log('Creating new entry for notes (hours exist):', projectId);
+          await TimeTrackingService.createTimeEntry({
+            project: parseInt(projectId),
+            date: dateString,
+            hours: existingProject.hours,
+            note: notes
           });
         } else {
-          console.log('Skipping note creation - no hours to log for project:', projectId);
+          console.log('Skipping notes save - no hours for project:', projectId);
+          return;
         }
+        
+        setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
+        setLastSaved(prev => ({ ...prev, [projectId]: new Date() }));
+        
+        // Auto-hide saved status after 3 seconds
+        setTimeout(() => {
+          setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
+        }, 3000);
+        
+      } catch (error) {
+        console.error('Failed to save notes:', error);
+        setSavingStatus(prev => ({ ...prev, [projectId]: 'error' }));
+        
+        // Auto-hide error status after 5 seconds
+        setTimeout(() => {
+          setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
+        }, 5000);
       }
-      
-      setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
-      setLastSaved(prev => ({ ...prev, [projectId]: new Date() }));
-      
-      // Auto-hide saved status after 3 seconds
-      setTimeout(() => {
-        setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
-      }, 3000);
-      
-    } catch (error) {
-      console.error('Failed to save notes:', error);
-      setSavingStatus(prev => ({ ...prev, [projectId]: 'error' }));
-      
-      // Auto-hide error status after 5 seconds
-      setTimeout(() => {
-        setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
-      }, 5000);
-    } finally {
-      // Clear pending call flag
-      pendingCalls.current[callKey] = false;
-    }
+    }, 500); // 500ms debounce delay
   };
 
   // Function to resize textarea based on content
@@ -412,18 +379,7 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
     saveHoursToDatabase(projectId, validHours);
   };
 
-  // Debounced save function - this will call the save after user stops typing
-  const debouncedSaveNotes = useCallback((projectId: string, notes: string) => {
-    // Clear existing timer for this project
-    if (debounceTimers.current[projectId]) {
-      clearTimeout(debounceTimers.current[projectId]);
-    }
 
-    // Set new timer for 800ms debounce
-    debounceTimers.current[projectId] = setTimeout(() => {
-      saveNotesToDatabase(projectId, notes);
-    }, 800);
-  }, [user, selectedDate, projects]);
 
   // Immediate UI update function (no API call - instant feedback)
   const updateProjectNotesUI = (projectId: string, notes: string) => {
@@ -447,7 +403,7 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
     updateProjectNotesUI(projectId, limitedNotes);
     
     // 2. Debounced API call (only after user stops typing)
-    debouncedSaveNotes(projectId, limitedNotes);
+    saveNotesToDatabase(projectId, limitedNotes);
   };
 
   const navigateDate = (direction: 'prev' | 'next') => {
