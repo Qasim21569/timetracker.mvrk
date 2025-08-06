@@ -164,44 +164,43 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
         );
         
         if (existingEntry) {
-          if (hours === 0) {
-            console.log('Deleting existing entry (hours=0):', existingEntry.id);
-            await TimeTrackingService.deleteTimeEntry((existingEntry as any).id);
-            await loadProjectsAndTimeEntries();
-          } else {
-            console.log('Updating existing entry:', existingEntry.id);
-            await TimeTrackingService.updateTimeEntry((existingEntry as any).id, {
-              project: parseInt(projectId),
-              date: dateString,
-              hours: hours,
-              note: existingProject?.notes || ''
-            } as any);
-          }
+          console.log('Updating existing entry:', existingEntry.id);
+          await TimeTrackingService.updateTimeEntry((existingEntry as any).id, {
+            project: parseInt(projectId),
+            date: dateString,
+            hours: hours,
+            note: existingProject?.notes || ''
+          } as any);
         } else {
-          if (hours === 0) {
-            console.log('Skipping creation - hours=0 for project:', projectId);
-            return;
-          } else {
-            console.log('Creating new entry for project:', projectId);
-            await TimeTrackingService.createTimeEntry({
-              project: parseInt(projectId),
-              date: dateString,
-              hours: hours,
-              note: existingProject?.notes || ''
-            });
-          }
+          console.log('Creating new entry for project:', projectId);
+          await TimeTrackingService.createTimeEntry({
+            project: parseInt(projectId),
+            date: dateString,
+            hours: hours,
+            note: existingProject?.notes || ''
+          });
         }
         
         setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
         
       } catch (error) {
         console.error('Failed to save hours:', error);
-        setSavingStatus(prev => ({ ...prev, [projectId]: 'error' }));
         
-        // Auto-hide error status after 5 seconds
-        setTimeout(() => {
-          setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
-        }, 5000);
+        // Check if this is a duplicate entry error
+        if (error instanceof ApiError && error.status === 400 && 
+            (error.message.includes('unique') || error.message.includes('duplicate') || error.message.includes('already exists'))) {
+          console.log('Duplicate entry detected, reloading data to get latest state');
+          // Reload the data to refresh the UI with the latest state
+          await loadProjectsAndTimeEntries();
+          setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
+        } else {
+          setSavingStatus(prev => ({ ...prev, [projectId]: 'error' }));
+          
+          // Auto-hide error status after 5 seconds
+          setTimeout(() => {
+            setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
+          }, 5000);
+        }
       }
     }, 500); // 500ms debounce delay
   };
@@ -244,17 +243,14 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
             hours: existingProject?.hours || 0,
             note: notes
           } as any);
-        } else if (existingProject?.hours && existingProject.hours > 0) {
-          console.log('Creating new entry for notes (hours exist):', projectId);
+        } else {
+          console.log('Creating new entry for notes:', projectId);
           await TimeTrackingService.createTimeEntry({
             project: parseInt(projectId),
             date: dateString,
-            hours: existingProject.hours,
+            hours: existingProject?.hours || 0,
             note: notes
           });
-        } else {
-          console.log('Skipping notes save - no hours for project:', projectId);
-          return;
         }
         
         setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
@@ -267,12 +263,22 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
         
       } catch (error) {
         console.error('Failed to save notes:', error);
-        setSavingStatus(prev => ({ ...prev, [projectId]: 'error' }));
         
-        // Auto-hide error status after 5 seconds
-        setTimeout(() => {
-          setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
-        }, 5000);
+        // Check if this is a duplicate entry error
+        if (error instanceof ApiError && error.status === 400 && 
+            (error.message.includes('unique') || error.message.includes('duplicate') || error.message.includes('already exists'))) {
+          console.log('Duplicate entry detected, reloading data to get latest state');
+          // Reload the data to refresh the UI with the latest state
+          await loadProjectsAndTimeEntries();
+          setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
+        } else {
+          setSavingStatus(prev => ({ ...prev, [projectId]: 'error' }));
+          
+          // Auto-hide error status after 5 seconds
+          setTimeout(() => {
+            setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
+          }, 5000);
+        }
       }
     }, 500); // 500ms debounce delay
   };

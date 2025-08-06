@@ -124,7 +124,7 @@ else:
             'USER': 'timetracker_user',
             'PASSWORD': 'timetracker_pass',
             'HOST': 'localhost',
-            'PORT': '5433',
+            'PORT': '5432',
         }
     }
 
