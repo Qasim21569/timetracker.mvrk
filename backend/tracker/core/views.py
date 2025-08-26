@@ -107,6 +107,8 @@ class HourEntryListView(generics.ListCreateAPIView):
         user = self.request.user
         project = serializer.validated_data.get('project')
         entry_date = serializer.validated_data.get('date')
+        hours = serializer.validated_data.get('hours')
+        note = serializer.validated_data.get('note', '')
         
         # Validate that user can log time for this project
         from django.db.models import Q
@@ -126,7 +128,24 @@ class HourEntryListView(generics.ListCreateAPIView):
             else:
                 raise ValidationError(f"Cannot log time for this date. Project '{project.name}' was only active from {project.start_date} to {project.end_date}.")
         
-        serializer.save(user=user)
+        # DUPLICATE PREVENTION: Check if entry already exists for this user, project, and date
+        try:
+            existing_entry = HourEntry.objects.get(
+                user=user,
+                project=project,
+                date=entry_date
+            )
+            # Entry exists - UPDATE instead of CREATE
+            existing_entry.hours = hours
+            existing_entry.note = note
+            existing_entry.save()
+            
+            # Update the serializer instance to return the updated entry
+            serializer.instance = existing_entry
+            
+        except HourEntry.DoesNotExist:
+            # Entry doesn't exist - CREATE new entry
+            serializer.save(user=user)
 
 class UserProfileView(APIView):
     """Get current user profile information"""

@@ -153,54 +153,28 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
       try {
         console.log('Debounced save triggered for project:', projectId, 'hours:', hours);
         
-        // Get current time entries
-        const timeEntries = await TimeTrackingService.getAllTimeEntries({
-          date: dateString
+        // Backend now handles duplicate checking automatically
+        // Just call createTimeEntry - backend will update if exists, create if not
+        console.log('Saving hours for project:', projectId, 'hours:', hours);
+        await TimeTrackingService.createTimeEntry({
+          project: parseInt(projectId),
+          date: dateString,
+          hours: hours,
+          note: existingProject?.notes || ''
         });
-        
-        const existingEntry = timeEntries.find(entry => 
-          String((entry as any).project) === String(projectId) && 
-          (entry as any).user === parseInt(user.id)
-        );
-        
-        if (existingEntry) {
-          console.log('Updating existing entry:', existingEntry.id);
-          await TimeTrackingService.updateTimeEntry((existingEntry as any).id, {
-            project: parseInt(projectId),
-            date: dateString,
-            hours: hours,
-            note: existingProject?.notes || ''
-          } as any);
-        } else {
-          console.log('Creating new entry for project:', projectId);
-          await TimeTrackingService.createTimeEntry({
-            project: parseInt(projectId),
-            date: dateString,
-            hours: hours,
-            note: existingProject?.notes || ''
-          });
-        }
         
         setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
         
       } catch (error) {
         console.error('Failed to save hours:', error);
         
-        // Check if this is a duplicate entry error
-        if (error instanceof ApiError && error.status === 400 && 
-            (error.message.includes('unique') || error.message.includes('duplicate') || error.message.includes('already exists'))) {
-          console.log('Duplicate entry detected, reloading data to get latest state');
-          // Reload the data to refresh the UI with the latest state
-          await loadProjectsAndTimeEntries();
-          setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
-        } else {
-          setSavingStatus(prev => ({ ...prev, [projectId]: 'error' }));
-          
-          // Auto-hide error status after 5 seconds
-          setTimeout(() => {
-            setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
-          }, 5000);
-        }
+        // Backend now handles duplicates, so treat all errors as actual errors
+        setSavingStatus(prev => ({ ...prev, [projectId]: 'error' }));
+        
+        // Auto-hide error status after 5 seconds
+        setTimeout(() => {
+          setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
+        }, 5000);
       }
     }, 500); // 500ms debounce delay
   };
@@ -225,33 +199,15 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
       try {
         console.log('Debounced notes save triggered for project:', projectId);
         
-        // Get current time entries
-        const timeEntries = await TimeTrackingService.getAllTimeEntries({
-          date: dateString
+        // Backend now handles duplicate checking automatically
+        // Just call createTimeEntry - backend will update if exists, create if not
+        console.log('Saving notes for project:', projectId);
+        await TimeTrackingService.createTimeEntry({
+          project: parseInt(projectId),
+          date: dateString,
+          hours: existingProject?.hours || 0,
+          note: notes
         });
-        
-        const existingEntry = timeEntries.find(entry => 
-          String((entry as any).project) === String(projectId) && 
-          (entry as any).user === parseInt(user.id)
-        );
-        
-        if (existingEntry) {
-          console.log('Updating existing entry notes:', existingEntry.id);
-          await TimeTrackingService.updateTimeEntry((existingEntry as any).id, {
-            project: parseInt(projectId),
-            date: dateString,
-            hours: existingProject?.hours || 0,
-            note: notes
-          } as any);
-        } else {
-          console.log('Creating new entry for notes:', projectId);
-          await TimeTrackingService.createTimeEntry({
-            project: parseInt(projectId),
-            date: dateString,
-            hours: existingProject?.hours || 0,
-            note: notes
-          });
-        }
         
         setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
         setLastSaved(prev => ({ ...prev, [projectId]: new Date() }));
@@ -264,21 +220,13 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
       } catch (error) {
         console.error('Failed to save notes:', error);
         
-        // Check if this is a duplicate entry error
-        if (error instanceof ApiError && error.status === 400 && 
-            (error.message.includes('unique') || error.message.includes('duplicate') || error.message.includes('already exists'))) {
-          console.log('Duplicate entry detected, reloading data to get latest state');
-          // Reload the data to refresh the UI with the latest state
-          await loadProjectsAndTimeEntries();
-          setSavingStatus(prev => ({ ...prev, [projectId]: 'saved' }));
-        } else {
-          setSavingStatus(prev => ({ ...prev, [projectId]: 'error' }));
-          
-          // Auto-hide error status after 5 seconds
-          setTimeout(() => {
-            setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
-          }, 5000);
-        }
+        // Backend now handles duplicates, so treat all errors as actual errors
+        setSavingStatus(prev => ({ ...prev, [projectId]: 'error' }));
+        
+        // Auto-hide error status after 5 seconds
+        setTimeout(() => {
+          setSavingStatus(prev => ({ ...prev, [projectId]: 'idle' }));
+        }, 5000);
       }
     }, 500); // 500ms debounce delay
   };
