@@ -307,8 +307,8 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
       return 24;
     }
     
-    // Round to 2 decimal places to match backend
-    const roundedHours = Math.round(parsedHours * 100) / 100;
+    // Round to nearest 0.25 for quarter-hour increments (0, 0.25, 0.5, 0.75, 1.0, etc.)
+    const roundedHours = Math.round(parsedHours * 4) / 4;
     console.log('Final rounded hours:', roundedHours);
     return roundedHours;
   };
@@ -506,7 +506,7 @@ const DailyTrackTime: React.FC<DailyTrackTimeProps> = ({ onViewChange }) => {
                       className="w-20 text-center border rounded px-2 py-1 mx-auto"
                       min="0"
                       max="24"
-                      step="0.5"
+                      step="0.25"
                     />
                   </td>
                   <td className="p-4 w-7/12">

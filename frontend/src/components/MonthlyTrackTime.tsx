@@ -401,10 +401,21 @@ const DailyTrackTimeEmbedded: React.FC<DailyTrackTimeEmbeddedProps> = ({ selecte
     setProjects(updatedProjects);
   };
 
+  // Validate and process hours to quarter-hour increments
+  const validateAndProcessHours = (inputValue: string | number): number => {
+    const cleanValue = String(inputValue).replace(/[^0-9.]/g, '');
+    const parsedHours = parseFloat(cleanValue);
+    if (isNaN(parsedHours)) return 0;
+    if (parsedHours < 0) return 0;
+    if (parsedHours > 24) return 24;
+    // Round to nearest 0.25 for quarter-hour increments
+    return Math.round(parsedHours * 4) / 4;
+  };
+
   const updateProjectHours = (projectId: string, hours: number) => {
     const updatedProjects = projects.map(project => {
       if (project.id === projectId) {
-        return { ...project, hours: Math.max(0, hours) };
+        return { ...project, hours: Math.max(0, hours) }; // hours already validated in onChange
       }
       return project;
     });
@@ -443,10 +454,11 @@ const DailyTrackTimeEmbedded: React.FC<DailyTrackTimeEmbeddedProps> = ({ selecte
                   <input
                     type="number"
                     value={project.hours}
-                    onChange={(e) => updateProjectHours(project.id, Number(e.target.value))}
+                    onChange={(e) => updateProjectHours(project.id, validateAndProcessHours(e.target.value))}
                     className="w-24 text-center border rounded px-2 py-1"
                     min="0"
-                    step="0.5"
+                    max="24"
+                    step="0.25"
                   />
                 </td>
                 <td className="p-4">

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Filter, Download, Printer, BarChart3, TrendingUp, Calendar, Users } from 'lucide-react';
+import { Filter, BarChart3, TrendingUp, Calendar, Users, FileEdit } from 'lucide-react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ProjectService, UserService, TimeTrackingService, ApiError } from '@/services/api';
 import { Project, User } from '@/data/dummyData';
@@ -28,6 +28,7 @@ interface ProjectData {
 
 const ReportsInterface = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState('All Users');
   const [selectedProject, setSelectedProject] = useState('All Projects');
@@ -272,6 +273,16 @@ const ReportsInterface = () => {
     );
   }
 
+  const handleExportReport = () => {
+    // Navigate to edit-export page with current report data
+    const params = new URLSearchParams({
+      project: selectedProject,
+      user: selectedUser,
+      month: format(selectedMonth, 'yyyy-MM')
+    });
+    navigate(`/reports/edit-export?${params.toString()}`);
+  };
+
   return (
     <div className="space-y-6 md:space-y-8 p-6 md:p-8">
       {/* Enhanced Header */}
@@ -384,20 +395,6 @@ const ReportsInterface = () => {
             >
               {loading ? 'Generating...' : 'Generate Report'}
             </Button>
-            {showReport && (
-              <>
-                <Button variant="outline" className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export Data
-                </Button>
-                {showPrintReport && (
-                  <Button variant="outline" className="bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 text-purple-700 border-purple-200">
-                    <Printer className="h-4 w-4 mr-2" />
-                    Print Report
-                  </Button>
-                )}
-              </>
-            )}
           </div>
             </>
           )}
@@ -497,6 +494,19 @@ const ReportsInterface = () => {
                 </TableBody>
               </Table>
             </div>
+            
+            {/* Export Report Button */}
+            {filteredData.length > 0 && selectedProject !== 'All Projects' && (
+              <div className="mt-6 flex justify-end">
+                <Button 
+                  onClick={handleExportReport}
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium px-6 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2"
+                >
+                  <FileEdit className="h-4 w-4" />
+                  Export Report
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

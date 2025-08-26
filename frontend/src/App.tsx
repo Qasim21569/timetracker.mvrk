@@ -12,6 +12,7 @@ import LoginPage from "./pages/Login";
 import UserManagementPage from "./pages/UserManagement";
 import ProjectManagementPage from "./pages/ProjectManagement";
 import ReportsPage from "./pages/Reports";
+import ReportEditExport from "./pages/ReportEditExport";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -47,6 +48,7 @@ const App: React.FC = () => {
                 <Route path="/users" element={<UserManagementPage />} />
                 <Route path="/projects" element={<ProjectManagementPage />} />
                 <Route path="/reports" element={<ReportsPage />} />
+                <Route path="/reports/edit-export" element={<ReportEditExport />} />
               </Route>
               
               <Route path="*" element={<NotFound />} />

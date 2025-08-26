@@ -128,19 +128,24 @@ class HourEntryListView(generics.ListCreateAPIView):
             else:
                 raise ValidationError(f"Cannot log time for this date. Project '{project.name}' was only active from {project.start_date} to {project.end_date}.")
         
-        # Use update_or_create for atomic operation (prevents duplicates and race conditions)
-        entry, created = HourEntry.objects.update_or_create(
-            user=user,
-            project=project,
-            date=entry_date,
-            defaults={
-                "hours": hours,
-                "note": note
-            }
-        )
-        
-        # Set the serializer instance to the created/updated entry
-        serializer.instance = entry
+        # DUPLICATE PREVENTION: Check if entry already exists for this user, project, and date
+        try:
+            existing_entry = HourEntry.objects.get(
+                user=user,
+                project=project,
+                date=entry_date
+            )
+            # Entry exists - UPDATE instead of CREATE
+            existing_entry.hours = hours
+            existing_entry.note = note
+            existing_entry.save()
+            
+            # Update the serializer instance to return the updated entry
+            serializer.instance = existing_entry
+            
+        except HourEntry.DoesNotExist:
+            # Entry doesn't exist - CREATE new entry
+            serializer.save(user=user)
 
 class UserProfileView(APIView):
     """Get current user profile information"""
@@ -201,7 +206,6 @@ class HourEntryDetailView(generics.RetrieveUpdateDestroyAPIView):
         user = self.request.user
         project = serializer.validated_data.get('project', serializer.instance.project)
         entry_date = serializer.validated_data.get('date', serializer.instance.date)
-        hours = serializer.validated_data.get('hours', serializer.instance.hours)
         
         # Validate that user can log time for this project
         from django.db.models import Q
@@ -220,11 +224,6 @@ class HourEntryDetailView(generics.RetrieveUpdateDestroyAPIView):
                 raise ValidationError("Cannot log time for projects without start and end dates. Please contact admin to set project dates.")
             else:
                 raise ValidationError(f"Cannot log time for this date. Project '{project.name}' was only active from {project.start_date} to {project.end_date}.")
-        
-        # If hours is 0, delete the entry instead of updating
-        if hours == 0:
-            serializer.instance.delete()
-            return  # Don't call serializer.save() after deletion
         
         serializer.save()
 

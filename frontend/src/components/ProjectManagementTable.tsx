@@ -87,13 +87,6 @@ const ProjectManagementTable = ({ onEditProject, refreshTrigger, onProjectDelete
     return user ? user.name : 'Unknown User';
   };
 
-  const getProjectIcon = (projectName: string) => {
-    if (projectName.toLowerCase().includes('meeting')) return '🗣️';
-    if (projectName.toLowerCase().includes('x')) return '🚀';
-    if (projectName.toLowerCase().includes('y')) return '⚡';
-    return '📁';
-  };
-
   const getProjectStatusDisplay = (project: any) => {
     const status = project.status || 'no_dates';
     
@@ -168,39 +161,32 @@ const ProjectManagementTable = ({ onEditProject, refreshTrigger, onProjectDelete
                   `}
                 >
                   <TableCell className="font-medium text-xs md:text-sm py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-semibold bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg">
-                        <span className="text-white text-sm">
-                          {getProjectIcon(project.name)}
-                        </span>
+                    <div>
+                      <div className={`font-semibold ${isInactive ? 'text-slate-500' : 'text-slate-800'}`} title={project.name}>
+                        {project.name}
+                        {isInactive && <span className="ml-2 text-xs text-slate-400">(Inactive)</span>}
                       </div>
-                      <div>
-                        <div className={`font-semibold ${isInactive ? 'text-slate-500' : 'text-slate-800'}`} title={project.name}>
-                          {project.name}
-                          {isInactive && <span className="ml-2 text-xs text-slate-400">(Inactive)</span>}
-                        </div>
-                        <div className={`text-xs ${isInactive ? 'text-slate-400' : 'text-slate-500'}`}>
-                          {project.client}
-                        </div>
-                        <div className="text-xs text-slate-500 flex items-center gap-2 mt-1">
-                          <span>{assignedUserNames.length} member{assignedUserNames.length !== 1 ? 's' : ''}</span>
-                          {((project as any).start_date || (project as any).end_date) && (
-                            <span className="text-slate-400">•</span>
-                          )}
-                          {(project as any).start_date && (project as any).end_date ? (
-                            <span className="text-slate-600 font-medium">
-                              {new Date((project as any).start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date((project as any).end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </span>
-                          ) : (project as any).start_date ? (
-                            <span className="text-slate-600 font-medium">
-                              Starts {new Date((project as any).start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </span>
-                          ) : (project as any).end_date ? (
-                            <span className="text-slate-600 font-medium">
-                              Ends {new Date((project as any).end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </span>
-                          ) : null}
-                        </div>
+                      <div className={`text-xs ${isInactive ? 'text-slate-400' : 'text-slate-500'}`}>
+                        {project.client}
+                      </div>
+                      <div className="text-xs text-slate-500 flex items-center gap-2 mt-1">
+                        <span>{assignedUserNames.length} member{assignedUserNames.length !== 1 ? 's' : ''}</span>
+                        {((project as any).start_date || (project as any).end_date) && (
+                          <span className="text-slate-400">•</span>
+                        )}
+                        {(project as any).start_date && (project as any).end_date ? (
+                          <span className="text-slate-600 font-medium">
+                            {new Date((project as any).start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date((project as any).end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        ) : (project as any).start_date ? (
+                          <span className="text-slate-600 font-medium">
+                            Starts {new Date((project as any).start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        ) : (project as any).end_date ? (
+                          <span className="text-slate-600 font-medium">
+                            Ends {new Date((project as any).end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        ) : null}
                       </div>
                     </div>
                   </TableCell>

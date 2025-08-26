@@ -183,9 +183,20 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
     }
   };
 
+  // Validate and process hours to quarter-hour increments
+  const validateAndProcessHours = (inputValue: string | number): number => {
+    const cleanValue = String(inputValue).replace(/[^0-9.]/g, '');
+    const parsedHours = parseFloat(cleanValue);
+    if (isNaN(parsedHours)) return 0;
+    if (parsedHours < 0) return 0;
+    if (parsedHours > 24) return 24;
+    // Round to nearest 0.25 for quarter-hour increments
+    return Math.round(parsedHours * 4) / 4;
+  };
+
   const updateProjectHours = (projectId: string, dayIndex: number, hours: number) => {
     const project = projects.find(p => p.id === projectId);
-    const newHours = Math.max(0, hours);
+    const newHours = Math.max(0, hours); // hours already validated in onChange
     
     // If hours > 0 and no notes exist, force notes dialog
     if (newHours > 0 && project && !project.weeklyNotes[dayIndex]) {
@@ -420,10 +431,11 @@ const WeeklyTrackTime: React.FC<WeeklyTrackTimeProps> = ({ onViewChange }) => {
                         <Input
                           type="number"
                           value={project.weeklyHours[dayIndex] || 0}
-                          onChange={(e) => updateProjectHours(project.id, dayIndex, Number(e.target.value))}
+                          onChange={(e) => updateProjectHours(project.id, dayIndex, validateAndProcessHours(e.target.value))}
                           className="w-full text-center border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 text-xs md:text-sm min-w-0"
                           min="0"
-                          step="0.5"
+                          max="24"
+                          step="0.25"
                           onClick={(e) => e.stopPropagation()}
                           data-project={project.id}
                           data-day={dayIndex}
