@@ -34,7 +34,7 @@ const TimeTrackingPage = () => {
           
           <div className="card-enhanced rounded-2xl p-6 md:p-8">
             <div className="space-y-2">
-              <h1 className="text-3xl md:text-4xl font-bold gradient-text">Time Tracking</h1>
+              <h1 className="text-3xl md:text-4xl font-bold gradient-text">MVRK Time Tracker</h1>
               <p className="text-base md:text-lg text-slate-600 max-w-2xl">
                 Track your personal work hours, {currentUser?.name}
               </p>
@@ -57,7 +57,7 @@ const TimeTrackingPage = () => {
         {/* Header indicating this is personal time tracking */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Time Tracking
+MVRK Time Tracker
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
             Track your work hours, {currentUser?.name}

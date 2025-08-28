@@ -1,4 +1,4 @@
-// API service layer for Time Tracker application
+// API service layer for MVRK Time Tracker application
 import { User, Project, TimeEntry, UserRole } from '@/data/dummyData';
 
 // Base configuration - Environment-based API URL

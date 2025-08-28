@@ -206,7 +206,7 @@ const AddUserForm = ({ onClose, onUserAdded }: AddUserFormProps) => {
 
   // Format credentials for copying
   const formatCredentials = (details: CreatedUserDetails) => {
-    return `TimeTracker Account Created
+    return `MVRK Time Tracker Account Created
 
 Name: ${details.name}
 Username: ${details.username}

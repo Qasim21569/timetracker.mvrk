@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
-import { Building, Home, Users, Briefcase, BarChart3, LogOut, Settings, ChevronDown, Clock } from 'lucide-react';
+import { Building, Home, Users, Briefcase, BarChart3, LogOut, Settings, ChevronDown } from 'lucide-react';
 
 const getPageTitle = (pathname: string): string => {
-  if (pathname === '/') return 'Time Tracking';
+  if (pathname === '/') return 'MVRK Time Tracker';
   if (pathname.startsWith('/users')) return 'User Management';
   if (pathname.startsWith('/projects')) return 'Project Management';
   if (pathname.startsWith('/reports')) return 'Reports';
@@ -43,14 +43,9 @@ const AppHeader = () => {
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo and Company Name - Enhanced */}
         <div className="flex items-center gap-3">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg blur-md opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
-              <div className="relative bg-gradient-to-br from-blue-600 to-purple-600 p-2 rounded-lg shadow-lg">
-                <Clock className="h-5 w-5 text-white" />
-              </div>
-            </div>
-            <span className="text-xl font-bold gradient-text">TimeTracker</span>
+          <Link to="/" className="flex items-center gap-3 group hover:opacity-80 transition-opacity duration-300">
+            <img src="/logo-color.png" alt="MVRK" className="h-8 w-auto" />
+            <span className="text-xl font-bold gradient-text">MVRK Time Tracker</span>
           </Link>
         </div>
 

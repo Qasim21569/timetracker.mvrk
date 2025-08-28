@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { Mail, Lock, LogIn, Chrome, Clock, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, LogIn, Chrome, Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -31,15 +31,10 @@ const LoginPage = () => {
       <div className="relative z-10 w-full max-w-md">
         {/* Enhanced Logo Section */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl blur-lg opacity-60 animate-pulse"></div>
-              <div className="relative bg-gradient-to-br from-blue-600 to-purple-600 p-4 rounded-2xl shadow-2xl">
-                <Clock className="h-8 w-8 text-white" />
-              </div>
-            </div>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <img src="/logo-color.png" alt="MVRK" className="h-16 w-auto" />
+            <h1 className="text-3xl md:text-4xl font-bold gradient-text whitespace-nowrap">Time Tracker</h1>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold gradient-text mb-2">TimeTracker</h1>
           <p className="text-slate-600 text-lg">Welcome back to your workspace</p>
         </div>
 
@@ -157,7 +152,7 @@ const LoginPage = () => {
 
         {/* Footer */}
         <div className="text-center mt-8 text-slate-500 text-sm">
-          <p>© 2024 TimeTracker. Streamline your productivity.</p>
+          <p>© 2024 MVRK Time Tracker. Streamline your productivity.</p>
         </div>
       </div>
     </div>
