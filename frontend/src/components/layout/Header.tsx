@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
-import { Building, Home, Users, Briefcase, BarChart3, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { Building, Home, Users, Briefcase, BarChart3, LogOut, Settings, ChevronDown, Clock } from 'lucide-react';
 
 const getPageTitle = (pathname: string): string => {
   if (pathname === '/') return 'MVRK Time Tracker';
