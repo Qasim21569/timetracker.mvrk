@@ -79,7 +79,7 @@ const ReportEditExport = () => {
       const selectedProject = allProjects.find(p => p.name === project);
       if (selectedProject) {
         setProjectName(selectedProject.name);
-        setClientName(selectedProject.name); // Client name = Project name as you specified
+        setClientName(selectedProject.client || selectedProject.name); // Use client field, fallback to project name
       }
 
       // Filter entries by project
