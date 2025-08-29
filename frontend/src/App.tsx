@@ -9,6 +9,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 
 import IndexPage from "./pages/Index";
 import LoginPage from "./pages/Login";
+import DashboardPage from "./pages/Dashboard";
 import UserManagementPage from "./pages/UserManagement";
 import ProjectManagementPage from "./pages/ProjectManagement";
 import ReportsPage from "./pages/Reports";
@@ -40,6 +41,7 @@ const App: React.FC = () => {
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<IndexPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Route>
 

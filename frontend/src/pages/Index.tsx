@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import AdminTabs from '@/components/layout/AdminTabs';
+import UserNavigation from '@/components/layout/UserNavigation';
 import { useAuth } from '@/contexts/AuthContext';
 import DailyTrackTime from '@/components/DailyTrackTime';
 import WeeklyTrackTime from '@/components/WeeklyTrackTime';
@@ -32,6 +33,9 @@ const TimeTrackingPage = () => {
         <div className="space-y-6 md:space-y-8">
           <AdminTabs />
           
+          {/* Add UserNavigation for Track Time ↔ Dashboard switching */}
+          <UserNavigation />
+          
           <div className="card-enhanced rounded-2xl p-6 md:p-8">
             <div className="space-y-2">
               <h1 className="text-3xl md:text-4xl font-bold gradient-text">MVRK Time Tracker</h1>
@@ -50,14 +54,17 @@ const TimeTrackingPage = () => {
     );
   }
 
-  // For regular users, use the original simpler layout
+    // For regular users, use the original simpler layout
   return (
     <MainLayout>
-      <div className="max-w-7xl mx-auto">
+      {/* User Navigation */}
+      <UserNavigation />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header indicating this is personal time tracking */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-MVRK Time Tracker
+            Track Time
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
             Track your work hours, {currentUser?.name}
