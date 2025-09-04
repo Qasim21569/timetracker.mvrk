@@ -128,24 +128,19 @@ class HourEntryListView(generics.ListCreateAPIView):
             else:
                 raise ValidationError(f"Cannot log time for this date. Project '{project.name}' was only active from {project.start_date} to {project.end_date}.")
         
-        # DUPLICATE PREVENTION: Check if entry already exists for this user, project, and date
-        try:
-            existing_entry = HourEntry.objects.get(
-                user=user,
-                project=project,
-                date=entry_date
-            )
-            # Entry exists - UPDATE instead of CREATE
-            existing_entry.hours = hours
-            existing_entry.note = note
-            existing_entry.save()
-            
-            # Update the serializer instance to return the updated entry
-            serializer.instance = existing_entry
-            
-        except HourEntry.DoesNotExist:
-            # Entry doesn't exist - CREATE new entry
-            serializer.save(user=user)
+        # UPDATE or CREATE in a single call
+        entry, created = HourEntry.objects.update_or_create(
+            user=user,
+            project=project,
+            date=entry_date,
+            defaults={
+                "hours": hours,
+                "note": note
+            }
+        )
+    
+        # Make sure DRF serializer knows about the instance
+        serializer.instance = entry
 
 class UserProfileView(APIView):
     """Get current user profile information"""
