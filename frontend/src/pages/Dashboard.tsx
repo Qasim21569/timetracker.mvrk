@@ -40,11 +40,12 @@ const Dashboard: React.FC = () => {
       // Get date range for last 6 months to reduce data transfer
       const now = new Date();
       const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
-      
+      const tomorrow = new Date(now);
+      tomorrow.setDate(now.getDate() + 1);
       const [entriesResponse, userProjectsResponse] = await Promise.all([
         TimeTrackingService.getAllTimeEntries({
           start_date: sixMonthsAgo.toISOString().split('T')[0],
-          end_date: now.toISOString().split('T')[0]
+          end_date: tomorrow.toISOString().split('T')[0] 
         }),
         ProjectAssignmentService.getUserProjects(currentUser.id)
       ]);
