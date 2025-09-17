@@ -98,6 +98,7 @@ const Dashboard: React.FC = () => {
     console.log('🔍 calculateStats - User assigned projects:', projects);
     
     const now = new Date();
+    
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     //const startOfWeek = new Date(today);
     //startOfWeek.setDate(today.getDate() - today.getDay());
@@ -111,7 +112,9 @@ const Dashboard: React.FC = () => {
 
     // Calculate today's hours
     const formatDate = (d: Date) => d.toISOString().split('T')[0];
-    const todayStr = formatDate(new Date());
+    const todayStr = now.getFullYear() + '-' +
+                 String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                 String(now.getDate()).padStart(2, '0');
     
     const todayEntries = entriesToUse.filter(entry => entry.date === todayStr);
     const todayHours = todayEntries.reduce((sum, entry) => sum + entry.hours, 0);
