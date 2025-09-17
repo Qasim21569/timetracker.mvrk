@@ -98,8 +98,8 @@ const Dashboard: React.FC = () => {
     
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay());
+    //const startOfWeek = new Date(today);
+    //startOfWeek.setDate(today.getDate() - today.getDay());
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     // Since we're already getting user-specific data from getUserProjects,
