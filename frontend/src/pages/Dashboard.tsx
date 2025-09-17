@@ -109,24 +109,25 @@ const Dashboard: React.FC = () => {
     console.log('🔍 Using entries for current user:', entriesToUse);
 
     // Calculate today's hours
-    const todayEntries = entriesToUse.filter(entry => {
-      const entryDate = new Date(entry.date);
-      return entryDate >= today && entryDate < new Date(today.getTime() + 24 * 60 * 60 * 1000);
-    });
+    const formatDate = (d: Date) => d.toISOString().split('T')[0];
+    const todayStr = formatDate(new Date());
+    
+    const todayEntries = entriesToUse.filter(entry => entry.date === todayStr);
     const todayHours = todayEntries.reduce((sum, entry) => sum + entry.hours, 0);
 
     // Calculate this week's hours
-    const weekEntries = entriesToUse.filter(entry => {
-      const entryDate = new Date(entry.date);
-      return entryDate >= startOfWeek;
-    });
-    const weekHours = weekEntries.reduce((sum, entry) => sum + entry.hours, 0);
 
+    const startOfWeek = new Date();
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()); 
+    const startOfWeekStr = formatDate(startOfWeek);
+    
+    const weekEntries = entriesToUse.filter(entry => entry.date >= startOfWeekStr);
+    const weekHours = weekEntries.reduce((sum, entry) => sum + entry.hours, 0);
     // Calculate this month's hours
-    const monthEntries = entriesToUse.filter(entry => {
-      const entryDate = new Date(entry.date);
-      return entryDate >= startOfMonth;
-    });
+
+    const startOfMonthStr = formatDate(new Date(now.getFullYear(), now.getMonth(), 1));
+
+    const monthEntries = entriesToUse.filter(entry => entry.date >= startOfMonthStr);
     const monthHours = monthEntries.reduce((sum, entry) => sum + entry.hours, 0);
 
     // Calculate active projects (projects worked on this month)
@@ -149,8 +150,9 @@ const Dashboard: React.FC = () => {
     }
 
     // Calculate averages
-    const avgHoursPerDay = workingDaysThisMonth > 0 ? monthHours / workingDaysThisMonth : 0;
-    const avgHoursPerWeek = monthHours / (currentDayOfMonth / 7); // Approximate weeks
+    const avgHoursPerDay = currentDayOfMonth > 0 ? monthHours / currentDayOfMonth : 0;
+    const avgHoursPerWeek = (currentDayOfMonth / 7) > 0 ? monthHours / (currentDayOfMonth / 7) : 0;
+
     
     console.log('📊 Final calculated stats:', {
       todayHours,
